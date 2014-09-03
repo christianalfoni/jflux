@@ -2,11 +2,15 @@
 
 An easy to use unidirectional component based framework
 
+- [The concept](#concept)
+- [API](#api)
+  - [components](#components)
+
 ### The concept
 We have all come to know and love our JS frameworks. Ember JS, Angular JS, React JS, Backbone, Knockout etc. All of them has given us the power of productivity and they make
 it even more fun to write code.
 
-What I have realised though is that I rarely use much of what is provided to me from these frameworks. There are so many concepts, so many methods and they do not completely solve my biggest problem; "Keeping my code sane and scalable". I feel like I always have to twist and turn my code every time I implement something new. Identifying exactly when you hit that mark of feeling good about your code, to feeling not so good, is hard.
+What I have realised though is that I rarely use much of what is provided to me from these frameworks. There are so many concepts, so many methods and they do not completely solve my biggest problem; "Keeping my code sane and scalable". I feel like I always have to twist and turn my code every time I implement something new. It is difficult to identify the exact point where you start feeling bad about your code, and what you did to get to that point.
 
 What I do know, is that you basically want to control two things in your application. **State** and **UI**. In MVC the state is spread between your domain models, which are the state of your database entities, and the controllers, which holds the state of your application. Your controllers mutate the models directly and/or some internal controller state. This makes it very hard to scale the application. It is a challenge to make new implementations aware of the state changes on your existing models, and more challenging is to relate to the state changes in your existing controllers. How do you make new implementations aware of these model and internal controller state changes?
 
@@ -21,25 +25,18 @@ I think it is time to check some code.
 
 ### Components
 ```javascript
-var MyComponent = $$.component(function () {
 
-  // The callback defined will run
-  // whenever the component needs to update
-  // itself
-  this.render(function () {
+    var MyComponent = $$.component(function () {
+        this.render(function () {
+            return this.template(
+                '<h1>',
+                    'Hello world!',
+                '</h1>'
+            );
+        });
+    });
+    $$.render(MyComponent(), 'body');
 
-    // The template arguments define a DOM
-    // structure
-    return this.template(
-      '<h1>',
-        'Hello world!',
-      '</h1>'
-    );
-  });
-});
-
-// Render the component to the body
-$$.render(MyComponent(), 'body');
 ```
 This code defines a callback that runs whenever the component needs to render. It returns a template. A template is a method that takes unlimited arguments that builds
 up a DOM structure. This syntax makes it very easy to write HTML in javascript and it
