@@ -2,7 +2,7 @@
 
 An easy to use unidirectional component based framework. Please have a look at the examples for a quick overview of how jFramework works. Run `python -m SimpleHTTPServer 3000` in your terminal at the root of this repo, then access f.ex. `localhost:3000/demo-todomvc`.
 
-Please read the following post if you are interested in the background of this project: [jQuery as a framework, could that work?]()
+Please read the following post if you are interested in the background of this project: [jQuery as a framework, could that work?](http://christianalfoni.github.io/javascript/2014/09/08/jquery-as-a-framework-could-that-work.html)
 
 - [State of development](#development)
 - [The concept](#concept)
