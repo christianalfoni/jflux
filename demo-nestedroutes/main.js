@@ -1,8 +1,3 @@
-$$.config({
-  baseUrl: '/demo-nestedroutes'
-});
-
-
 var App = $$.component(function (template) {
   this.render(function () {
     return template(
@@ -48,6 +43,10 @@ var Post = $$.component(function (template) {
   });
 });
 
+$$.config({
+  baseUrl: '/demo-nestedroutes'
+});
+
 $$.route('/', function () {
   $$.render(App(), 'body');
   $$.render(Home(), '#content');
@@ -62,5 +61,5 @@ $$.route('/posts', function () {
 $$.route('/posts/{id}', function (params) {
   $$.render(App(), 'body');
   $$.render(Posts(), '#content');
-  $$.render(Post(params), '#content-post', true);
+  $$.render(Post(params), '#content-post');
 });

@@ -2,6 +2,8 @@
 
 An easy to use unidirectional component based framework. Please have a look at the examples for a quick overview of how jFramework works. Run `python -m SimpleHTTPServer 3000` in your terminal at the root of this repo, then access f.ex. `localhost:3000/demo-todomvc`.
 
+Please read the following post if you are interested in the background of this project: [jQuery as a framework, could that work?]()
+
 - [State of development](#development)
 - [The concept](#concept)
 - [Features](#features)
@@ -214,7 +216,7 @@ actions.editTodo(todo, 'newTitle');
 
 ####<a name="jframework-listeningtoactions">Listening to actions</a>
 Only states created will be able to listen to actions, do state changes and
-flush updates to listening to components.
+flush updates to listening components.
 ```javascript
 var AppState = $$.state(function (flush) {
   

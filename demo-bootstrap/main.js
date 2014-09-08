@@ -1,3 +1,5 @@
+$$.config({autoRoute: false});
+
 var Dropdown = $$.component(function (template) {
 
   this.plugin('dropdown');
@@ -16,7 +18,7 @@ var Dropdown = $$.component(function (template) {
     }, this);
     return template(
       '<div class="dropdown">',
-        '<a data-toggle="dropdown" href="#">Dropdown trigger</a>',
+        '<a data-toggle="dropdown" href="#">' + this.props.title + '</a>',
         '<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">',
         items,
         '</ul>',

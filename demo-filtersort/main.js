@@ -1,8 +1,16 @@
+$$.config({autoRoute: false});
+
+/*
+ *  ACTIONS
+ */
 var actions = $$.action([
   'sort',
   'filter'
   ]);
 
+/*
+ *  STATE
+ */
 var ListState = $$.state(function (flush) {
   var list = getNames();
   var filter = '';
@@ -42,6 +50,9 @@ var ListState = $$.state(function (flush) {
   });
 });
 
+/*
+ *  COMPONENT
+ */
 var List = $$.component(function (template) {
 
   this.sortIncreasing = function () {
@@ -67,18 +78,18 @@ var List = $$.component(function (template) {
     var list = ListState.getList().map(function (person) {
       return template(
         '<li id="' + person._id + '">', 
-        person.firstName + ' ' + person.lastName, 
+          person.firstName + ' ' + person.lastName, 
         '</li>'
         );
     });
     return template(
       '<div>',
-      '<button id="sort-inc">Sort inc</button>',
-      '<button id="sort-dec">Sort dec</button>',
-      '<input id="filter"/>',
-      '<ul>',
-      list,
-      '</ul>',
+        '<button id="sort-inc">Sort inc</button>',
+        '<button id="sort-dec">Sort dec</button>',
+        '<input id="filter"/>',
+        '<ul>',
+          list,
+        '</ul>',
       '</div>'
       );
   });
@@ -88,6 +99,10 @@ var List = $$.component(function (template) {
 $(function () {
   $$.render(List(), 'body');
 });
+
+/*
+ *  A LIST OF NAMES
+ */
 
 function getNames () {
   return [
