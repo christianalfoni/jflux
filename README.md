@@ -36,6 +36,7 @@ Please read the following post if you are interested in the background of this p
     - [Plugins](#components-plugins)
     - [Updates](#components-updates)
     - [Listening to state changes](#components-listeningtostatechanges)
+    - [Binding to inputs](#components-bindingtoinputs)
   - [Router](#router)
       - [Create a route](#router-createroute)
       - [Trigger the router](#router-triggertherouter)
@@ -586,6 +587,32 @@ var MyComponent = $$.component(function (template) {
 });
 ```
 
+####<a name="components-bindingtoinputs">Binding to inputs</a>
+Sometimes you want to bind to inputs. The inputs might affect a state in your component and you need it to update automatically. Meet bind, it will update your component on 
+input change:
+
+```javascript
+var MyComponent = $$.component(function (template) {
+  var todo = {
+    title: '',
+    description: ''
+  };
+  this.bind(model, 'title', 'input[name="title"]');
+  this.bind(model, 'description', 'input[name="description"]');
+  this.render(function () {
+    return template(
+      '<div>',
+        '<input name="title" type="text"/>',
+        '<input name="description" type="text"/>',
+        '<button' + (todo.title && todo.description ? '' : ' disabled') + '>',
+          'Add',
+        '</button>',
+      '</div>'
+    );
+  });
+});
+```
+The button in this example will only be enabled if there is both a title and a description.
 
 ##<a name="router">Router</a>
 jFramework supports both hash and popstate routing. jFramework knows about its rendered components and lets you very easily render components to any section of the screen, much like nested routes. It also supports dynamic links and redirects.
