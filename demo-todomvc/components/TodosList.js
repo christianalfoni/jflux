@@ -8,23 +8,25 @@ define(['jframework', 'AppState', 'actions', 'components/Todo'], function ($$, A
 
     this.listenTo(AppState, this.update);
     this.listenTo('change', '#toggle-all', this.toggleAll);
-    this.render(function () {
+    this.render = function (compile) {
 
-      var todos = AppState.getTodos().map(function (todo) {
-        return template(
-          Todo({id: todo.id, todo: todo})
+      var todos = this.map(AppState.getTodos(), function (compile) {
+        return compile(
+          Todo({id: this.id, todo: this})
         );
       });
-      return template(
+
+      this.allChecked = AppState.allCompleted() && todos.length > 0;
+      return compile(
         '<div>',
-          '<input id="toggle-all" type="checkbox"' + (AppState.allCompleted() && todos.length ? ' checked' : '') + '/>',
+          '<input id="toggle-all" type="checkbox" $$-checked="allChecked"/>',
           '<ul id="todo-list">',
             todos,
           '</ul>',
         '</div>'
       );
 
-    });
+    };
 
   });
 

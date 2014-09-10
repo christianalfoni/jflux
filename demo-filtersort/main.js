@@ -11,7 +11,8 @@ var actions = $$.action([
 /*
  *  STATE
  */
-var ListState = $$.state(function (flush) {
+var ListState = $$.state(function () {
+
   var list = getNames();
   var filter = '';
 
@@ -27,17 +28,17 @@ var ListState = $$.state(function (flush) {
         return 0;
       }
     });
-    flush();
+    this.flush();
   };
 
   this.setFilter = function (newFilter) {
     filter = newFilter;
-    flush();
+    this.flush();
   };
 
   this.listenTo(actions.sort, this.sort);
   this.listenTo(actions.filter, this.setFilter);
-  this.exports({
+  this.exports = {
     getList: function () {
       if (filter) {
         return list.filter(function (person) {
@@ -47,13 +48,13 @@ var ListState = $$.state(function (flush) {
         return list;
       }
     }
-  });
+  };
 });
 
 /*
  *  COMPONENT
  */
-var List = $$.component(function (template) {
+var List = $$.component(function () {
 
   this.sortIncreasing = function () {
     actions.sort(true);
@@ -74,15 +75,15 @@ var List = $$.component(function (template) {
   this.listenTo('click', '#sort-inc', this.sortIncreasing);
   this.listenTo('click', '#sort-dec', this.sortDecreasing);
   this.listenTo('keydown', '#filter', this.filter);
-  this.render(function () {
-    var list = ListState.getList().map(function (person) {
-      return template(
-        '<li id="' + person._id + '">', 
-          person.firstName + ' ' + person.lastName, 
+  this.render = function (compile) {
+    var list = this.map(ListState.getList(), function (compile) {
+      return compile(
+        '<li $$-id="_id">', 
+          this.firstName + ' ' + this.lastName, 
         '</li>'
         );
     });
-    return template(
+    return compile(
       '<div>',
         '<button id="sort-inc">Sort inc</button>',
         '<button id="sort-dec">Sort dec</button>',
@@ -91,8 +92,8 @@ var List = $$.component(function (template) {
           list,
         '</ul>',
       '</div>'
-      );
-  });
+    );
+  };
 
 });
 

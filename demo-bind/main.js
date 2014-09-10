@@ -1,30 +1,30 @@
 $$.config({autoRoute: false});
 
-var BindedComponent = $$.component(function (template) {
+var BindedComponent = $$.component(function () {
 
-  var newTodo = {
+  this.newTodo = {
     title: '',
     completed: false
   };
 
-  this.bind(newTodo, 'title', ':text');
-  this.bind(newTodo, 'completed', ':checkbox');
-  this.render(function () {
-    return template(
+  this.bind(this.newTodo, 'title', ':text');
+  this.bind(this.newTodo, 'completed', ':checkbox');
+  this.render = function (compile) {
+    return compile(
       '<div>',
         '<form>',
-          '<input type="text" name="title" value="' + newTodo.title + '"/>',
+          '<input type="text" name="title" $$-value="newTodo.title"/>',
           '<div>',
-            newTodo.title,
+            this.newTodo.title,
           '</div>',
-          '<input type="checkbox"' + (newTodo.completed ? 'checked' : '') + '"/>',
+          '<input type="checkbox" $$-checked="newTodo.completed"/>',
           '<div>',
-            'completed: ' + newTodo.completed,
+            'completed: ' + this.newTodo.completed,
           '</div>',
         '</form>',
       '</div>'
     );
-  });
+  };
 
 });
 

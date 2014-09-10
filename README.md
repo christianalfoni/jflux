@@ -18,7 +18,6 @@ Please read the following post if you are interested in the background of this p
     - [$$.run](#jframework-run)
     - [$$.generateId](#jframework-generateid)
     - [$$.path](#jframework-path)
-    - [$$.addClass](#jframework-addclass)
   - [Actions](#actions)
     - [Create actions](#actions-createactions)
     - [Listening to actions](#actions-listeningtoactions)
@@ -29,7 +28,15 @@ Please read the following post if you are interested in the background of this p
     - [Exports](#state-exports)
   - [Components](#components)
     - [Create a component](#components-createcomponent)
-    - [Templates](#components-template)
+    - [Compile](#components-compile)
+    - [Map](#components-map)
+    - [Attributes](#components-attributes)
+      - [$$-id](#components-attributes-id)
+      - [$$-class](#components-attributes-class)
+      - [$$-checked](#components-attributes-checked)
+      - [$$-disabled](#components-attributes-disabled)
+      - [$$-value](#components-attributes-value)
+      - [$$-style](#components-attributes-style)
     - [Properties](#components-properties)
     - [Composing](#components-composing)
     - [Listening to UI events](#components-listeningtouievents)
@@ -60,7 +67,8 @@ that it needs to keep in sync
 - **Composable** components that lets you define a small section of DOM content, add behaviour to it and reuse the component throughout your application
 - Strong concepts of where to put **state** and how to update that state
 - A **router**
-- Use jQuery **plugins** to add complex behaviour to your components
+- Use existing jQuery **plugins** to add complex behaviour to your components, or use
+all the powerful functionality of a component itself
 
 ##<a name="api">API</a>
 
@@ -106,13 +114,15 @@ var myActions = $$.action([
 ####<a name="jframework-state">$$.state(func)</a>
 Returns a state object, please go to [State](#state) to read more about the state API.
 ```javascript
-var AppState = $$.state(function (flush) {
+var AppState = $$.state(function () {
+
   var list = [];
-  this.exports({
+
+  this.exports = {
     getList: function () {
       return list;
     }
-  });
+  };
 
 });
 ```
@@ -120,15 +130,15 @@ var AppState = $$.state(function (flush) {
 ####<a name="jframework-component">$$.component(func)</a>
 Returns a component. Please go to [Components](#components) to read more about the component API.
 ```javascript
-var MyComponent = $$.component(function (template) {
+var MyComponent = $$.component(function () {
 
-  this.render(function () {
-    return template(
+  this.render = function (compile) {
+    return compile(
       '<h1>',
         'Hello world',
       '</h1>'
     );
-  });
+  };
 
 });
 ```
@@ -177,21 +187,7 @@ Returns the current route path.
 ```javascript
 $$.path() // f.ex. "/posts/1"
 ```
-####<a name="jframework-path">$$.addClass(obj)</a>
-A helper method to create an html `class=""` string where the keys of the object is added as a class name if the value of the key is true.
-```javascript
-var MyComponent = $$.component(function (template) {
-  
-  this.render(function () {
-    return template(
-      '<div' + $$.addClass({enabled: this.props.isEnabled}) + '>',
-        'Hello world',
-      '</div>'
-    );
-  });
 
-});
-```
 ###<a name="actions">Actions</a>
 Actions defines what state changes your application is able to do. Reading the list of actions
 is actually reading the functionality of your application.
@@ -219,7 +215,7 @@ actions.editTodo(todo, 'newTitle');
 Only states created will be able to listen to actions, do state changes and
 flush updates to listening components.
 ```javascript
-var AppState = $$.state(function (flush) {
+var AppState = $$.state(function () {
   
   // A state
   var todos = [];
@@ -228,7 +224,7 @@ var AppState = $$.state(function (flush) {
   this.addTodo = function (todo) {
     todo.id = $$.generateId();
     todos.push(todo);
-    flush();
+    this.flush();
   };
 
   // Listen to an action
@@ -236,11 +232,11 @@ var AppState = $$.state(function (flush) {
 
   // Export methods that components can use to get
   // state information
-  this.exports({
+  this.exports = {
     getTodos: function () {
       return todos;
     }
-  });
+  };
 
 });
 ```
@@ -253,7 +249,7 @@ multiple state objects that will handle different types of state in your applica
 Your state is contained inside one or multiple state objects. The states are
 normally defined by declaring a variable.
 ```javascript
-var AppState = $$.state(function (flush) {
+var AppState = $$.state(function () {
   
   // A todos list state
   var todos = [];
@@ -271,7 +267,7 @@ var AppState = $$.state(function (flush) {
 State mutators are normally triggered by an action listener and will change
 declared variables.
 ```javascript
-var AppState = $$.state(function (flush) {
+var AppState = $$.state(function () {
   
   var todos = [];
   var filter = {
@@ -285,13 +281,13 @@ var AppState = $$.state(function (flush) {
   this.addTodo = function (todo) {
     todo.id = $$.generateId();
     todos.push(todo);
-    flush();
+    this.flush();
   };
 
 
   this.filter = function (filterOptions) {
     filter = filterOptions;
-    flush();
+    this.flush();
   };
 
 });
@@ -301,7 +297,7 @@ var AppState = $$.state(function (flush) {
 A state object in jFramework listens to actions and trigger their 
 state mutators.
 ```javascript
-var AppState = $$.state(function (flush) {
+var AppState = $$.state(function () {
   
   var todos = [];
   var filter = {
@@ -312,12 +308,12 @@ var AppState = $$.state(function (flush) {
   this.addTodo = function (todo) {
     todo.id = $$.generateId();
     todos.push(todo);
-    flush();
+    this.flush();
   };
 
   this.filter = function (filterOptions) {
     filter = filterOptions;
-    flush();
+    this.flush();
   };
 
   // Listen to the function that is used to trigger
@@ -333,7 +329,7 @@ Components will need to extract the states from the state object. This is done
 by defining export methods. These methods should only be "getters", not "setters".
 State change is only done by actions.
 ```javascript
-var AppState = $$.state(function (flush) {
+var AppState = $$.state(function () {
   
   var todos = [];
   var filter = {
@@ -344,12 +340,12 @@ var AppState = $$.state(function (flush) {
   this.addTodo = function (todo) {
     todo.id = $$.generateId();
     todos.push(todo);
-    flush();
+    this.flush();
   };
 
   this.filter = function (filterOptions) {
     filter = filterOptions;
-    flush();
+    this.flush();
   };
 
   this.listenTo(actions.addTodo, this.addTodo);
@@ -358,13 +354,13 @@ var AppState = $$.state(function (flush) {
   // We define a method that will be available to components.
   // It returns a list of todos based on the current state of
   // the filter
-  this.exports({
+  this.exports = {
     getTodos: function () {
       return todos.filter(function (todo) {
         return (filter.completed && todo.completed) || (filter.active && !todo.completed);
       });
     }
-  });
+  };
 
 });
 ```
@@ -375,25 +371,23 @@ can live inside other components.
 
 ####<a name="components-creatingacomponent">Creating a component</a>
 The minimum boilerplate for a component is to define a render callback that
-returns a template with a top node.
+returns a template with a top node. The default render method compiles a single `div`.
 ```javascript
-var MyComponent = $$.component(function (template) {
+var MyComponent = $$.component(function () {
   
-  this.render(function () {
-    return template(
+  this.render = function (compile) {
+    return compile(
       '<h1>',
         'Hello world',
       '</h1>'
     );
-  });
+  };
 
 });
 ```
 
-####<a name="components-templates">Templates</a>
-The first and only argument passed to a component is the `template` function. The template
-function returns a UI data structure that jFramework understands. A template can take
-the following arguments:
+####<a name="components-compile">Compile</a>
+The first and only argument passed to a components render method is the `template` function. The compile function returns a UI data structure that jFramework understands. Compile can take the following arguments:
 
 - string
 - number
@@ -401,44 +395,161 @@ the following arguments:
 - Component
 
 The arguments builds a DOM structure that will be appended to wherever the component
-is appended.
+is appended or diffed with existing render of the component.
 
+####<a name="components-map">map</a>
+If you need to compile a list of elements you can use the `map` method provided. It takes its own compile function. The context of the map callback will be the item from the list:
 ```javascript
-var MyComponent = $$.component(function (template) {
+var MyComponent = $$.component(function () {
   
-  this.render(function () {
-    var list = ['foo', 'bar'].map(function (label) {
-      return template(
+  this.render = function (compile) {
+    var list = this.map(['foo', 'bar'], function (compile) {
+      return compile(
         '<li>',
-          label
+          this,
         '</li>'
       );
     });
-    return template(
+    return compile(
       '<ul>',
         list,
       '</ul>'
     );
-  });
+  };
+
+});
+```
+
+####<a name="components-attributes">Attributes</a>
+You can add attributes as you normally would, but jFramework is aware of the context you are in an can get values from that context. You have your main component context, where you define render etc., but you also have a context when iterating lists which you can grab values from.
+
+```javascript
+var MyComponent = $$.component(function () {
+  this.myList = [{id: '1', title: 'foo'}, {id: '2', title: 'bar'}];
+  this.render = function (compile) {
+
+    // In context of a list
+    var list = this.map(this.myList, function (compile) {
+      return compile(
+        '<div $$-id="id">' + this.title + '</div>'
+      );
+    });
+
+    // In context of the render method
+    this.myId = 'myId';
+    return compile(
+      '<div $$-id="myId"></div>'
+    );
+  };
+
+});
+``
+
+#####<a name="components-attributes-id">$$-id</a>
+```javascript
+var MyComponent = $$.component(function () {
+  
+  this.render = function (compile) {
+    this.myId = 'myId';
+    return compile(
+      '<ul $$-id="myId">',
+        list,
+      '</ul>'
+    );
+  };
+
+});
+```
+#####<a name="components-attributes-class">$$-class</a>
+The class attribute needs to point to an object where the keys are the class names and the value is either true or false. True values will add the class name, false will not.
+```javascript
+var MyComponent = $$.component(function () {
+
+  this.render = function (compile) {
+
+    this.myListClass = {
+      active: $$.path() === '/',
+      'my-list-class': true
+    };
+
+    return compile(
+      '<ul $$-class="myListClass">',
+        list,
+      '</ul>'
+    );
+  };
+
+});
+```
+#####<a name="components-attributes-checked">$$-checked</a>
+```javascript
+var MyComponent = $$.component(function () {
+
+  this.render = function (compile) {
+    this.isActive = true;
+    return compile(
+      '<input type="checkbox" $$-checked="isActive"/>'
+    );
+  };
+
+});
+```
+#####<a name="components-attributes-disabled">$$-disabled</a>
+```javascript
+var MyComponent = $$.component(function () {
+
+  this.render = function (compile) {
+    this.isDisabled = false;
+    return compile(
+      '<input type="checkbox" $$-disabled="isDisabled"/>'
+    );
+  };
+
+});
+```
+#####<a name="components-attributes-value">$$-value</a>
+```javascript
+var MyComponent = $$.component(function () {
+
+  this.render = function (compile) {
+    this.myValue = 'Hello there';
+    return compile(
+      '<input type="text" $$-value="myValue"/>'
+    );
+  };
+
+});
+```
+
+#####<a name="components-attributes-style">$$-style</a>
+```javascript
+var MyComponent = $$.component(function () {
+
+  this.render = function (compile) {
+    this.myStyle = {
+      color: 'red'
+    };
+    return compile(
+      '<div $$-style="myStyle"/>'
+    );
+  };
 
 });
 ```
 
 ####<a name="components-properties">Properties</a>
-Components can receive properties. These properties are passed when a component is rendered
-to an existing DOM node, or when composed into an other component. The properties are
-an object that can take any values. You point to the passed properties with: `this.props`.
+Components can receive properties. These properties are passed when a component is rendered to an existing DOM node, or when composed into an other component. The properties are an object that can take any values. You point to the passed properties with: `this.props`.
 
 ```javascript
-var MyComponent = $$.component(function (template) {
+var MyComponent = $$.component(function () {
   
-  this.render(function () {
-    return template(
+  this.render = function (compile) {
+    return compile(
       '<h1>',
         this.props.title,
       '</h1>'
     );
-  });
+  };
 
 });
 
@@ -449,29 +560,29 @@ $$.render(MyComponent({title: 'Hello world!'}), 'body');
 A component template can take other components as arguments.
 
 ```javascript
-var Item = $$.component(function (template) {
-  this.render(function () {
-    return template(
+var Item = $$.component(function () {
+  this.render = function (compile) {
+    return compile(
       '<li>',
         this.props.label,
       '</li>'
     );
-  });
+  };
 });
-var List = $$.component(function (template) {
-  this.render(function () {
-    var items = ['foo', 'bar'].map(function (label) {
-        return template(
-          Item({label: label})
+var List = $$.component(function () {
+  this.render = function (compile) {
+    var items = this.map(['foo', 'bar'], function (compile) {
+        return compile(
+          Item({label: this})
         );
       });
-    return template(
+    return compile(
       '<ul>',
         Item({label: 'First in list'}),
         items,
       '</ul>'
     );
-  });
+  };
 });
 ```
 
@@ -480,7 +591,7 @@ Since jFramework is based on jQuery you will be able to use delegated events
 in your component to listen for user interaction.
 
 ```javascript
-var MyComponent = $$.component(function (template) {
+var MyComponent = $$.component(function () {
   this.log = function () {
     console.log('I was clicked!');
   };
@@ -488,35 +599,35 @@ var MyComponent = $$.component(function (template) {
   // The top node is what we are listening to, so no need to
   // set a target
   this.listenTo('click', this.log);
-  this.render(function () {
-    return template(
+  this.render = function (compile) {
+    return compile(
       '<button>',
         'Click me!',
       '</button>'
     );
-  });
+  };
 });
 ```
 
 If the node you listen to is nested in the template, use delegation:
 
 ```javascript
-var MyComponent = $$.component(function (template) {
+var MyComponent = $$.component(function () {
   this.log = function () {
     console.log('I was clicked!');
   };
 
   // The second argument can be any jQuery selector
   this.listenTo('click', 'button', this.log);
-  this.render(function () {
-    return template(
+  this.render = function (compile) {
+    return compile(
       '<div>',
         '<button>',
           'Click me!',
         '</button>',
       '</div>'
     );
-  });
+  };
 });
 ```
 
@@ -525,43 +636,42 @@ You can use any and multiple jQuery plugins in your component. This makes compon
 powerful as there already are lots of plugins out there.
 
 ```javascript
-var MyComponent = $$.component(function (template) {
+var MyComponent = $$.component(function () {
 
   // First argument is the name of the plugin, f.ex. $('a').dropdown() will be
   // 'dropdown'. The second argument is only needed if the plugin is triggered
   // on a nested element in the template. The last argument are the options passed
   // to the plugin
   this.plugin('someJQueryPlugin', 'span', {someOption: 'someValue'});
-  this.render(function () {
-    return template(
+  this.render = function (compile) {
+    return compile(
       '<div>',
         '<span></span>',
       '</div>'
     );
-  });
+  };
 });
 ```
 
 ####<a name="components-updates">Updates</a>
-Components are very smart when updating. They will do a diff of the jFramework UI structure
-and only do necessary DOM operations to update the UI. This includes attributes, text nodes
-and lists. You can call `this.update()` at any time, though they are normally used with
-state updates.
+Components are very smart when updating. They will do a diff of the jFramework UI structure and only do necessary DOM operations to update the UI. This includes attributes, text nodes and lists. You can call `this.update()` at any time, though they are normally used with state updates.
 
 ```javascript
-var MyComponent = $$.component(function (template) {
+var MyComponent = $$.component(function () {
   
-  var color = 'red';
+  this.style = {
+    color: 'red'
+  };
 
   this.changeColor = function () {
-    color = color === 'red' ? 'blue' : 'red';
+    this.style.color = this.style.color === 'red' ? 'blue' : 'red';
     this.update();
   };
 
   this.listenTo('click', 'button', this.changeColor);
   this.render(function () {
     return template(
-      '<div style="color: ' + color + '">',
+      '<div $$-style="style">',
         '<button>Change color</button>',
       '</div>'
     );
@@ -570,20 +680,18 @@ var MyComponent = $$.component(function (template) {
 ```
 
 ####<a name="components-listeningtostatechanges">Listening to state changes</a>
-Components listens to state changes on state objects. They do this by using the `listenTo`
-method also used to listen for UI interaction. When the state object flushes the component
-will rerender itself. 
+Components listens to state changes on state objects. They do this by using the `listenTo` method also used to listen for UI interaction. When the state object flushes the component will rerender itself. 
 
 ```javascript
-var MyComponent = $$.component(function (template) {
+var MyComponent = $$.component(function () {
   this.listenTo(AppState, this.update);
-  this.render(function () {
-    return template(
+  this.render = function (compile) {
+    return compile(
       '<h1>',
         AppState.getTitle(),
       '</h1>'
     );
-  });
+  };
 });
 ```
 
@@ -600,11 +708,12 @@ var MyComponent = $$.component(function (template) {
   this.bind(model, 'title', 'input[name="title"]');
   this.bind(model, 'description', 'input[name="description"]');
   this.render(function () {
+    this.invalidTodo = !(todo.title && todo.description);
     return template(
       '<div>',
         '<input name="title" type="text"/>',
         '<input name="description" type="text"/>',
-        '<button' + (todo.title && todo.description ? '' : ' disabled') + '>',
+        '<button $$-disabled="invalidTodo">',
           'Add',
         '</button>',
       '</div>'

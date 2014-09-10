@@ -6,7 +6,7 @@ var actions = $$.action(['addMessage']);
 /*
  * STATE
  */
-var MessagesState = $$.state(function (flush) {
+var MessagesState = $$.state(function () {
 
   var messages = [];
   
@@ -23,6 +23,7 @@ var MessagesState = $$.state(function (flush) {
   // Firebase will trigger this event, giving the last
   // 10 messages at any time. The messages are a hash,
   // so we have to convert them to an array, sorting by date
+  var state = this;
   view.on('value', function (value) {
     messages = value.val() || {};
     messages = Object.keys(messages).map(function (id) {
@@ -32,22 +33,22 @@ var MessagesState = $$.state(function (flush) {
     }).sort(function (a, b) {
       return a.date < b.date;
     });
-    flush();
+    state.flush();
   });
 
   this.listenTo(actions.addMessage, this.addNewMessage);
-  this.exports({
+  this.exports = {
     getMessages: function () {
       return messages;
     }
-  });
+  };
 
 });
 
 /*
  * COMPONENT
  */
-var MessagesList = $$.component(function (template) {
+var MessagesList = $$.component(function () {
 
   this.addMessage = function (form, event) {
     event.preventDefault();
@@ -64,15 +65,15 @@ var MessagesList = $$.component(function (template) {
   this.listenTo(MessagesState, this.update);
   this.listenTo('submit', 'form', this.addMessage);
   
-  this.render(function () {
-    var messages = MessagesState.getMessages().map(function (message) {
-       return template(
-        '<li id="' + message.id + '">',
-          message.text,
+  this.render = function (compile) {
+    var messages = this.map(MessagesState.getMessages(), function (compile) {
+       return compile(
+        '<li $$-id="id">',
+          this.text,
         '</li>'
       ); 
     });
-    return template(
+    return compile(
       '<div>',
         '<form>',
           '<input/>',
@@ -82,7 +83,7 @@ var MessagesList = $$.component(function (template) {
         '</ul>',
       '</div>'
     );
-  });
+  };
 
 });
 

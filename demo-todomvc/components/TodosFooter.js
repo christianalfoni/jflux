@@ -1,16 +1,19 @@
 define(['jframework', 'AppState'], function ($$, AppState) {
 
-  return $$.component(function (template) {
+  return $$.component(function () {
 
     this.listenTo(AppState, this.update);
-    this.render(function () {
+    this.render = function (compile) {
 
       var createRemainingText = function () {
         var remaining = AppState.getRemainingCount();
         return remaining + (remaining === 1 ? ' item' : ' items') + ' remaining';
       };
 
-      return template(
+      this.allClass = {selected: $$.path() === '/'};
+      this.activeClass = {selected: $$.path() === '/active'};
+      this.completedClass = {selected: $$.path() === '/completed'};
+      return compile(
         '<div>',
           '<span id="todo-count">',
             '<strong>',
@@ -19,19 +22,19 @@ define(['jframework', 'AppState'], function ($$, AppState) {
           '</span>',
           '<ul id="filters">',
             '<li>',
-              '<a href="/"' + $$.addClass({selected: $$.path() === '/'}) + '>All</a>',         
+              '<a href="/" $$-class="allClass">All</a>',         
             '</li>',
             '<li>',
-              '<a href="/active"' + $$.addClass({selected: $$.path() === '/active'}) + '>Active</a>',
+              '<a href="/active" $$-class="activeClass">Active</a>',
             '</li>',
             '<li>',
-              '<a href="/completed"' + $$.addClass({selected: $$.path() === '/completed'}) + '>Completed</a>',
+              '<a href="/completed" $$-class="completedClass">Completed</a>',
             '</li>',
           '</ul>',
         '</div>'
       );
 
-    });
+    };
 
   });
 

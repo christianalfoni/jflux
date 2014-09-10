@@ -1,6 +1,6 @@
 define(['jframework', 'actions'], function ($$, actions) {
 
-  return $$.component(function (template) {
+  return $$.component(function () {
 
     this.addTodo = function ($el, event) {
       event.preventDefault();
@@ -10,13 +10,13 @@ define(['jframework', 'actions'], function ($$, actions) {
     }; 
 
     this.listenTo('submit', this.addTodo);
-    this.render(function () {
-      return template(
+    this.render = function (compile) {
+      return compile(
         '<form id="todo-form">',
-          '<input id="new-todo" autofocus/>',
+          '<input id="new-todo" autofocus autocomplete="false"/>',
         '</form>'
       );
-    });
+    };
 
   });
 

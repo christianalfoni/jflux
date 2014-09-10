@@ -1,6 +1,6 @@
 define(['jframework', 'actions'], function ($$, actions) {
 
-  return $$.state(function (flush) {
+  return $$.state(function () {
 
     var todos = [];
     var filter = {
@@ -22,37 +22,37 @@ define(['jframework', 'actions'], function ($$, actions) {
         completed: false,
         id: $$.generateId()
       });
-      flush();
+      this.flush();
     };
 
     this.removeTodo = function (todo) {
       var todo = getTodo(todo.id);
       todos.splice(todos.indexOf(todo), 1);
-      flush();
+      this.flush();
     };
 
     this.toggleTodo = function (todo, completed) {
       var todo = getTodo(todo.id);
       todo.completed = completed;
-      flush();
+      this.flush();
     };
 
     this.updateTodo = function (todo, title) {
       var todo = getTodo(todo.id);
       todo.title = title;
-      flush();
+      this.flush();
     };
 
     this.toggleAllTodos = function (completed) {
       todos.forEach(function (todo) {
         todo.completed = completed;
       });
-      flush();
+      this.flush();
     };
 
     this.filter = function (options) {
       filter = options;
-      flush();
+      this.flush();
     };
 
     this.listenTo(actions.addTodo, this.addTodo);
@@ -62,7 +62,7 @@ define(['jframework', 'actions'], function ($$, actions) {
     this.listenTo(actions.toggleAllTodos, this.toggleAllTodos);
     this.listenTo(actions.filter, this.filter);
 
-    this.exports({
+    this.exports = {
       getTodos: function () {
         return todos.filter(function (todo) {
           return (filter.completed && todo.completed) || (filter.active && !todo.completed);
@@ -76,7 +76,7 @@ define(['jframework', 'actions'], function ($$, actions) {
       allCompleted: function () {
         return this.getRemainingCount() === 0;
       }
-    });
+    };
 
   });
 

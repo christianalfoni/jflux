@@ -2,9 +2,9 @@ define([
     'jframework', 'components/AddTodo', 'components/TodosList', 'components/TodosFooter'
   ], function ($$, AddTodo, TodosList, TodosFooter) {
 
-  return $$.component(function (template) {
-    this.render(function () {
-      return template(
+  return $$.component(function () {
+    this.render = function (compile) {
+      return compile(
         '<section id="todoapp">',
           '<header id="header">',
             '<h1>todos</h1>',
@@ -18,7 +18,7 @@ define([
           '</section>',
         '</section>'
         );
-    });
+    };
   });
 
 });

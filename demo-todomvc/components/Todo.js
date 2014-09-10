@@ -1,8 +1,8 @@
 define(['jframework', 'AppState', 'actions'], function ($$, AppState, actions) {
 
-  return $$.component(function (template) {
+  return $$.component(function () {
 
-    var isEditing = false;
+    this.isEditing = false;
 
     this.removeTodo = function ($el) {
       actions.removeTodo(this.props.todo);
@@ -13,7 +13,7 @@ define(['jframework', 'AppState', 'actions'], function ($$, AppState, actions) {
     };
 
     this.editTodo = function ($el) {
-      isEditing = true;
+      this.isEditing = true;
       this.update();
       var $input = $el.find(':text');
       $input.focus();
@@ -26,7 +26,7 @@ define(['jframework', 'AppState', 'actions'], function ($$, AppState, actions) {
       if (title) {
         actions.updateTodo(this.props.todo, title);
       }
-      isEditing = false;
+      this.isEditing = false;
       this.update();
     };
 
@@ -35,23 +35,24 @@ define(['jframework', 'AppState', 'actions'], function ($$, AppState, actions) {
     this.listenTo('dblclick', this.editTodo);
     this.listenTo('blur', ':text', this.stopEditing);
     this.listenTo('submit', 'form', this.stopEditing);
-    this.render(function () {
-      var todo = this.props.todo;
-      return template(
-        '<li id="' + todo.id + '"' + $$.addClass({completed: todo.completed, editing: isEditing}) + '>',
+    this.render = function (compile) {
+      var todo = this.todo = this.props.todo;
+      this.itemClass = {completed: todo.completed, editing: this.isEditing};
+      return compile(
+        '<li $$-id="todo.id" $$-class="itemClass">',
           '<div class="view">',
-            '<input class="toggle" type="checkbox"' + (todo.completed ? ' checked' : '') + '/>',
+            '<input class="toggle" type="checkbox" $$-checked="todo.completed"/>',
             '<label>',
               todo.title,
             '</label>',
             '<button class="destroy"></button>', 
           '</div>',
           '<form>',
-          '<input type="text" value="' + todo.title + '" class="edit"/>',
+          '<input type="text" $$-value="todo.title" class="edit"/>',
           '</form>',
         '</li>'
         );
-    });
+    };
 
   });
 

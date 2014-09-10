@@ -1,38 +1,38 @@
-var App = $$.component(function (template) {
-  this.render(function () {
-    return template(
+var App = $$.component(function () {
+  this.render = function (compile) {
+    return compile(
       '<div>',
         '<h1>Application</h1>',
         '<a href="/">Home</a> <a href="/posts">Posts</a>',
         '<div id="content"></div>',
       '</div>'
     );
-  });
+  };
 });
 
-var Home = $$.component(function (template) {
-  this.render(function () {
-    return template(
+var Home = $$.component(function () {
+  this.render = function (compile) {
+    return compile(
       '<h2>Home</h2>'
     );
-  });
+  };
 });
 
-var Posts = $$.component(function (template) {
-  this.render(function () {
-    return template(
+var Posts = $$.component(function () {
+  this.render = function (compile) {
+    return compile(
       '<div>',
         '<h2>Posts</h2>',
         '<a href="/posts/1">Post 1</a> <a href="/posts/2">Post 2</a>',   
         '<div id="content-post"></div>',
       '</div>'
     );
-  });
+  };
 });
 
-var Post = $$.component(function (template) {
-  this.render(function () {
-    return template(
+var Post = $$.component(function () {
+  this.render = function (compile) {
+    return compile(
       '<div>',
         '<h2>',
           'Post ' + this.props.id,
@@ -40,7 +40,7 @@ var Post = $$.component(function (template) {
         '<div>My post</div>',
       '</div>'
     );
-  });
+  };
 });
 
 $$.config({
