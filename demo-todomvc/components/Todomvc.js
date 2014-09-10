@@ -1,5 +1,5 @@
 define([
-    'jframework', 'components/AddTodo', 'components/TodosList', 'components/TodosFooter'
+    'jflux', 'components/AddTodo', 'components/TodosList', 'components/TodosFooter'
   ], function ($$, AddTodo, TodosList, TodosFooter) {
 
   return $$.component(function () {

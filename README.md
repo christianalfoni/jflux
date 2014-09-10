@@ -1,6 +1,6 @@
-# jFramework
+# jFlux
 
-An easy to use unidirectional component based framework. Please have a look at the examples for a quick overview of how jFramework works. Run `python -m SimpleHTTPServer 3000` in your terminal at the root of this repo, then access f.ex. `localhost:3000/demo-todomvc`.
+An easy to use unidirectional component based framework. Please have a look at the examples for a quick overview of how jFlux works. Run `python -m SimpleHTTPServer 3000` in your terminal at the root of this repo, then access f.ex. `localhost:3000/demo-todomvc`.
 
 Please read the following post if you are interested in the background of this project: [jQuery as a framework, could that work?](http://christianalfoni.github.io/javascript/2014/09/08/jquery-as-a-framework-could-that-work.html)
 
@@ -8,16 +8,16 @@ Please read the following post if you are interested in the background of this p
 - [The concept](#concept)
 - [Features](#features)
 - [API](#api)
-  - [jFramework](#jframework)
-    - [$$.config](#jframework-config)
-    - [$$.component](#jframework-component)
-    - [$$.action](#jframework-action)
-    - [$$.state](#jframework-state)
-    - [$$.route](#jframework-route)
-    - [$$.render](#jframework-render)
-    - [$$.run](#jframework-run)
-    - [$$.generateId](#jframework-generateid)
-    - [$$.path](#jframework-path)
+  - [jFlux](#jflux)
+    - [$$.config](#jflux-config)
+    - [$$.component](#jflux-component)
+    - [$$.action](#jflux-action)
+    - [$$.state](#jflux-state)
+    - [$$.route](#jflux-route)
+    - [$$.render](#jflux-render)
+    - [$$.run](#jflux-run)
+    - [$$.generateId](#jflux-generateid)
+    - [$$.path](#jflux-path)
   - [Actions](#actions)
     - [Create actions](#actions-createactions)
     - [Listening to actions](#actions-listeningtoactions)
@@ -52,13 +52,13 @@ Please read the following post if you are interested in the background of this p
       - [Redirecting routes](#router-redirectingroutes)
 
 ## <a name="development">State of development</a>
-jFramework is currently in **proof of concept**. The current code is implemented without consideration of testing, a project structure and a consistent API design.
+jFlux is currently in **proof of concept**. The current code is implemented without consideration of testing, a project structure and a consistent API design.
 
 Based on feedback the project will move into **alpha** which will have a project structure, testing and a reviewed API design. I will also open up for contributions on github.
 
 ## <a name="concept">The concept</a>
-jFramework takes concepts from big frameworks like Angular JS, Ember JS, React JS with FLUX etc. and exposes a very simple and easy to use API. It is based on jQuery, which lets you take something you already
-know and take it further. Where jFramework fits in the ecosystem of javascript frameworks is yet to see.
+jFlux takes concepts from big frameworks like Angular JS, Ember JS, React JS with FLUX etc. and exposes a very simple and easy to use API. It is based on jQuery, which lets you take something you already
+know and take it further. Where jFlux fits in the ecosystem of javascript frameworks is yet to see.
 
 ## <a name="features">Features</a>
 - **Unidirectional** state flow which makes it easier to scale the application
@@ -72,11 +72,11 @@ all the powerful functionality of a component itself
 
 ##<a name="api">API</a>
 
-###<a name="jframework">jFramework ($$)</a>
-jFramework is available as `$$` on the global scope. It also supports common module loaders like [requirejs]() and [browserify]().
+###<a name="jflux">jFlux ($$)</a>
+jFlux is available as `$$` on the global scope. It also supports common module loaders like [requirejs]() and [browserify]().
 
-####<a name="jframework-config">$$.config(obj)</a>
-Configures jFramework. The following example shows default values.
+####<a name="jflux-config">$$.config(obj)</a>
+Configures jFlux. The following example shows default values.
 ```javascript
 $$.config({
 
@@ -99,7 +99,7 @@ $$.config({
 
 });
 ```
-####<a name="jframework-action">$$.action([array])</a>
+####<a name="jflux-action">$$.action([array])</a>
 Returns a single action or a map of actions based on not passing any arguments, or passing an
 array of action names. Please go to [Actions](#actions) to read more about the action API.
 ```javascript
@@ -111,7 +111,7 @@ var myActions = $$.action([
 ]);
 ```
 
-####<a name="jframework-state">$$.state(func)</a>
+####<a name="jflux-state">$$.state(func)</a>
 Returns a state object, please go to [State](#state) to read more about the state API.
 ```javascript
 var AppState = $$.state(function () {
@@ -127,7 +127,7 @@ var AppState = $$.state(function () {
 });
 ```
 
-####<a name="jframework-component">$$.component(func)</a>
+####<a name="jflux-component">$$.component(func)</a>
 Returns a component. Please go to [Components](#components) to read more about the component API.
 ```javascript
 var MyComponent = $$.component(function () {
@@ -143,7 +143,7 @@ var MyComponent = $$.component(function () {
 });
 ```
 
-####<a name="jframework-route">$$.route(path, func)</a>
+####<a name="jflux-route">$$.route(path, func)</a>
 Registers a route. Please go to [Router](#router) to read more about the route API.
 ```javascript
 $$.route('/', function () {
@@ -151,7 +151,7 @@ $$.route('/', function () {
 });
 ```
 
-####<a name="jframework-render">$$.render(component, target)</a>
+####<a name="jflux-render">$$.render(component, target)</a>
 Renders a component to the target element. The target can be any jQuery selector.
 ```javascript
 $$.route('/', function () {
@@ -159,9 +159,9 @@ $$.route('/', function () {
 });
 ```
 ##### What it does
-When rendering a component to a target it will check that target for any previous renders. If it finds the same component type already rendered it will update that component if the properties passed to the component has changed. If a different component is being rendered, it will remove the previous component and add the new one. If any other components has been rendered within target, they will also be removed by jFramework. If no components registered on the target it will of course just render. 
+When rendering a component to a target it will check that target for any previous renders. If it finds the same component type already rendered it will update that component if the properties passed to the component has changed. If a different component is being rendered, it will remove the previous component and add the new one. If any other components has been rendered within target, they will also be removed by jFlux. If no components registered on the target it will of course just render. 
 
-####<a name="jframework-run">$$.run()</a>
+####<a name="jflux-run">$$.run()</a>
 Normally you do not need to run this method. It will run automatically on page load. If you have configured `autoRoute:false`, or use [requirejs](), you will ned to run the method. It triggers the router and handling of url changes and components.
 ```javascript
 $$.route('/', function () {});
@@ -174,15 +174,15 @@ $$.run();
 
 2. Triggers the initial route based on current url
 
-####<a name="jframework-generateid">$$.generateId([string])</a>
+####<a name="jflux-generateid">$$.generateId([string])</a>
 Lists in templates require IDs to handle changes in that list. If you do not have an
-ID, you can create one with jFramework. This could be handy when waiting for the ID from the backend or you are creating a list that for some reason does not have IDs, but still needs to be manipulated with sorting, filtering etc. An ID is always a string.
+ID, you can create one with jFlux. This could be handy when waiting for the ID from the backend or you are creating a list that for some reason does not have IDs, but still needs to be manipulated with sorting, filtering etc. An ID is always a string.
 ```javascript
 var id = $$.generateId(); // f.ex. "0"
 var todoId = $$.generateId('temp_todo'); // f.ex. "temp_todo_0"
 ```
 
-####<a name="jframework-path">$$.path()</a>
+####<a name="jflux-path">$$.path()</a>
 Returns the current route path.
 ```javascript
 $$.path() // f.ex. "/posts/1"
@@ -192,7 +192,7 @@ $$.path() // f.ex. "/posts/1"
 Actions defines what state changes your application is able to do. Reading the list of actions
 is actually reading the functionality of your application.
 
-####<a name="jframework-createactions">Create actions</a>
+####<a name="jflux-createactions">Create actions</a>
 ```javascript
 // Returns a function that will trigger the action when called
 var addTodo = $$.action();
@@ -211,7 +211,7 @@ actions.removeTodo(todo);
 actions.editTodo(todo, 'newTitle');
 ```
 
-####<a name="jframework-listeningtoactions">Listening to actions</a>
+####<a name="jflux-listeningtoactions">Listening to actions</a>
 Only states created will be able to listen to actions, do state changes and
 flush updates to listening components.
 ```javascript
@@ -245,7 +245,7 @@ var AppState = $$.state(function () {
 State objects holds state of your application. You may only have on "AppState" object or
 multiple state objects that will handle different types of state in your application.
 
-####<a name="jframework-creatingstates">Creating states</a>
+####<a name="jflux-creatingstates">Creating states</a>
 Your state is contained inside one or multiple state objects. The states are
 normally defined by declaring a variable.
 ```javascript
@@ -263,7 +263,7 @@ var AppState = $$.state(function () {
 });
 ```
 
-####<a name="jframework-statemutators">State mutators</a>
+####<a name="jflux-statemutators">State mutators</a>
 State mutators are normally triggered by an action listener and will change
 declared variables.
 ```javascript
@@ -293,8 +293,8 @@ var AppState = $$.state(function () {
 });
 ```
 
-####<a name="jframework-listeningtoactions">Listening to actions</a>
-A state object in jFramework listens to actions and trigger their 
+####<a name="jflux-listeningtoactions">Listening to actions</a>
+A state object in jFlux listens to actions and trigger their 
 state mutators.
 ```javascript
 var AppState = $$.state(function () {
@@ -324,7 +324,7 @@ var AppState = $$.state(function () {
 });
 ```
 
-####<a name="jframework-exports">Exports</a>
+####<a name="jflux-exports">Exports</a>
 Components will need to extract the states from the state object. This is done
 by defining export methods. These methods should only be "getters", not "setters".
 State change is only done by actions.
@@ -365,7 +365,7 @@ var AppState = $$.state(function () {
 });
 ```
 
-###<a name="jframework-components">Components</a>
+###<a name="jflux-components">Components</a>
 All your UI is constructed with components. They are composable, meaning that components
 can live inside other components.
 
@@ -387,7 +387,7 @@ var MyComponent = $$.component(function () {
 ```
 
 ####<a name="components-compile">Compile</a>
-The first and only argument passed to a components render method is the `template` function. The compile function returns a UI data structure that jFramework understands. Compile can take the following arguments:
+The first and only argument passed to a components render method is the `template` function. The compile function returns a UI data structure that jFlux understands. Compile can take the following arguments:
 
 - string
 - number
@@ -421,7 +421,7 @@ var MyComponent = $$.component(function () {
 ```
 
 ####<a name="components-attributes">Attributes</a>
-You can add attributes as you normally would, but jFramework is aware of the context you are in an can get values from that context. You have your main component context, where you define render etc., but you also have a context when iterating lists which you can grab values from.
+You can add attributes as you normally would, but jFlux is aware of the context you are in an can get values from that context. You have your main component context, where you define render etc., but you also have a context when iterating lists which you can grab values from.
 
 ```javascript
 var MyComponent = $$.component(function () {
@@ -587,7 +587,7 @@ var List = $$.component(function () {
 ```
 
 ####<a name="components-listeningtouievents">Listening to UI events</a>
-Since jFramework is based on jQuery you will be able to use delegated events
+Since jFlux is based on jQuery you will be able to use delegated events
 in your component to listen for user interaction.
 
 ```javascript
@@ -654,7 +654,7 @@ var MyComponent = $$.component(function () {
 ```
 
 ####<a name="components-updates">Updates</a>
-Components are very smart when updating. They will do a diff of the jFramework UI structure and only do necessary DOM operations to update the UI. This includes attributes, text nodes and lists. You can call `this.update()` at any time, though they are normally used with state updates.
+Components are very smart when updating. They will do a diff of the jFlux UI structure and only do necessary DOM operations to update the UI. This includes attributes, text nodes and lists. You can call `this.update()` at any time, though they are normally used with state updates.
 
 ```javascript
 var MyComponent = $$.component(function () {
@@ -724,7 +724,7 @@ var MyComponent = $$.component(function (template) {
 The button in this example will only be enabled if there is both a title and a description.
 
 ##<a name="router">Router</a>
-jFramework supports both hash and popstate routing. jFramework knows about its rendered components and lets you very easily render components to any section of the screen, much like nested routes. It also supports dynamic links and redirects.
+jFlux supports both hash and popstate routing. jFlux knows about its rendered components and lets you very easily render components to any section of the screen, much like nested routes. It also supports dynamic links and redirects.
 
 ####<a name="router-createroute">Creating a route</a>
 
@@ -748,9 +748,9 @@ $$.route('*', function () {
 ```
 
 ####<a name="router-triggertherouter">Trigger the router</a>
-By default the router will trigger itself on page load. You can configure this behaviour with the [config](#jframework-config) method. You might need to download some resources before triggering the router or you might be using *requirejs*. In that case you will have to trigger the router manually. This is an example with requirejs:
+By default the router will trigger itself on page load. You can configure this behaviour with the [config](#jflux-config) method. You might need to download some resources before triggering the router or you might be using *requirejs*. In that case you will have to trigger the router manually. This is an example with requirejs:
 ```javascript
-require(['jframework', 'MyApp'], function ($$, MyApp) {
+require(['jflux', 'MyApp'], function ($$, MyApp) {
   $$.route('/', function () {
     $$.render(MyApp(), 'body');
   });
@@ -770,7 +770,7 @@ $$.route('/posts/{id}/{action}', function (params) {
 In the first route above params will be an object that contains a key of `id`. The value of the key is whatever was written in the url in the `{id}` section. You can add multiple dynamic sections to the url, like shown in the next example, where you also have `{action}`. The params object passed to the callback will have two keys, `id` and `action`, with their respective values.
 
 ####<a name="router-nestedroutes">Nested routes</a>
-Instead of defining nesting in your code, like with callbacks etc. jFramework takes a different approach. Since it has full control of components in your page you do not have to worry about overriding or unecessarily rerendering them. That means we can define how the page should look on each route and jFramework will update the current DOM to that state as effectively as possible.
+Instead of defining nesting in your code, like with callbacks etc. jFlux takes a different approach. Since it has full control of components in your page you do not have to worry about overriding or unecessarily rerendering them. That means we can define how the page should look on each route and jFlux will update the current DOM to that state as effectively as possible.
 ```javascript
 $$.route('/', function () {
   $$.render(App(), 'body');

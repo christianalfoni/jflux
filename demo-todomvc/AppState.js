@@ -1,4 +1,4 @@
-define(['jframework', 'actions'], function ($$, actions) {
+define(['jflux', 'actions'], function ($$, actions) {
 
   return $$.state(function () {
 

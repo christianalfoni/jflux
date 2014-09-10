@@ -1,4 +1,4 @@
-define(['jframework', 'AppState', 'actions', 'components/Todo'], function ($$, AppState, actions, Todo) {
+define(['jflux', 'AppState', 'actions', 'components/Todo'], function ($$, AppState, actions, Todo) {
 
   return $$.component(function (template) {
 

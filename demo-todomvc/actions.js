@@ -1,4 +1,4 @@
-define(['jframework'], function ($$) {
+define(['jflux'], function ($$) {
 
   var actions = $$.action([
     'addTodo',

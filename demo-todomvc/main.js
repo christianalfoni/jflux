@@ -1,11 +1,11 @@
 require.config({
   paths: {
-    'jframework': '../lib/jframework',
+    'jflux': '../lib/jflux',
     'jquery': '../vendors/jquery'
   }
 });
 
-require(['jframework', 'components/Todomvc', 'actions'], function ($$, Todomvc, actions) {
+require(['jflux', 'components/Todomvc', 'actions'], function ($$, Todomvc, actions) {
 
   $$.config({
     baseUrl: '/demo-todomvc',

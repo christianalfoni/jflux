@@ -1,4 +1,4 @@
-define(['jframework', 'AppState'], function ($$, AppState) {
+define(['jflux', 'AppState'], function ($$, AppState) {
 
   return $$.component(function () {
 

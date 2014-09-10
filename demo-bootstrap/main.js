@@ -5,13 +5,14 @@ var Dropdown = $$.component(function () {
   this.plugin('dropdown');
   this.render = function (compile) {
     var items = this.map(this.props.items, function (compile) {
-      if (this) {
+
+      if (this instanceof Boolean) {
         return compile(
-          '<li role="presentation"><a role="menuitem" tabindex="-1" href="#">' + this + '</a></li>'
+          '<li role="presentation" class="divider"></li>'
         );
       } else {
         return compile(
-          '<li role="presentation" class="divider"></li>'
+          '<li role="presentation"><a role="menuitem" tabindex="-1" href="#">' + this + '</a></li>'
         );
       }
 
@@ -29,5 +30,5 @@ var Dropdown = $$.component(function () {
 });
 
 $(function () {
-  $$.render(Dropdown({title: 'Wazup?', items: ['foo', null, 'bar']}), 'body');
+  $$.render(Dropdown({title: 'Wazup?', items: ['foo', true, 'bar']}), 'body');
 });
