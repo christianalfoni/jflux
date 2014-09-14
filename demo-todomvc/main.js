@@ -1,7 +1,7 @@
 require.config({
   paths: {
-    'jflux': '../lib/jflux',
-    'jquery': '../vendors/jquery'
+    'jflux': '../build/jflux',
+    'jquery': 'https://code.jquery.com/jquery-2.1.1.min'
   }
 });
 
