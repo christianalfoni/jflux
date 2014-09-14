@@ -4,6 +4,7 @@
  * Analyses the arguments passed to "compile" and returns a representation
  * ====================================================================================
  */
+var $ = global.jQuery || require('jquery');
 var convertAttributes = require('./convertAttributes.js');
 
 var matchers = {

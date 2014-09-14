@@ -820,8 +820,10 @@ function Component (props) {
 
 module.exports = Component;
 },{}],"/Users/christianalfoni/Documents/dev/jflux/src/component/compile.js":[function(require,module,exports){
+(function (global){
 // Compiles DOM representations to a jQuery object. "registerComponents" is used
 // by "_init" to register nested components for later removal
+var $ = global.jQuery || require('jquery');
 var utils = require('./../utils.js');
 var Constructor = require('./Constructor.js');
 
@@ -860,7 +862,8 @@ var compile = function (renders, componentsList) {
 };
 
 module.exports = compile;
-},{"./../utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js","./Constructor.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/Constructor.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/convertAttributes.js":[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./../utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js","./Constructor.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/Constructor.js","jquery":"jquery"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/convertAttributes.js":[function(require,module,exports){
 /*
  * CONVERTATTRIBUTES
  * ====================================================================================
@@ -919,12 +922,14 @@ var convertAttributes = function ($el, context) {
 
 module.exports = convertAttributes;
 },{"./../utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/createDomNodeRepresentation.js":[function(require,module,exports){
+(function (global){
 /*
  * CREATEDOMNODEREPRESENTATION
  * ====================================================================================
  * Analyses the arguments passed to "compile" and returns a representation
  * ====================================================================================
  */
+var $ = global.jQuery || require('jquery');
 var convertAttributes = require('./convertAttributes.js');
 
 var matchers = {
@@ -979,7 +984,8 @@ var createDomNodeRepresentation = function (arg, context) {
 };
 
 module.exports = createDomNodeRepresentation;
-},{"./convertAttributes.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/convertAttributes.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/diff.js":[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./convertAttributes.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/convertAttributes.js","jquery":"jquery"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/diff.js":[function(require,module,exports){
 (function (global){
 var jQuery = global.jQuery || require('jquery');
 var compile = require('./compile.js');
@@ -1390,6 +1396,7 @@ var run = function () {
 module.exports = run;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./../config.js":"/Users/christianalfoni/Documents/dev/jflux/src/config.js","./../router.js":"/Users/christianalfoni/Documents/dev/jflux/src/router.js","jquery":"jquery"}],"/Users/christianalfoni/Documents/dev/jflux/src/router.js":[function(require,module,exports){
+(function (global){
 /*
  * ROUTER
  * ====================================================================================
@@ -1397,7 +1404,7 @@ module.exports = run;
  * ====================================================================================
  */
 
-var $ = require('jquery');
+var $ = global.jQuery || require('jquery');
 var utils = require('./utils.js');
 var config = require('./config.js');
 
@@ -1458,6 +1465,7 @@ exports.deferTo = function (path) {
 };
 
 module.exports = exports;
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./config.js":"/Users/christianalfoni/Documents/dev/jflux/src/config.js","./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js","jquery":"jquery"}],"/Users/christianalfoni/Documents/dev/jflux/src/state.js":[function(require,module,exports){
 var EventEmitter = require('./EventEmitter.js');
 var utils = require('./utils.js');

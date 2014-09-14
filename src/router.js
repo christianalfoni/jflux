@@ -5,7 +5,7 @@
  * ====================================================================================
  */
 
-var $ = require('jquery');
+var $ = global.jQuery || require('jquery');
 var utils = require('./utils.js');
 var config = require('./config.js');
 

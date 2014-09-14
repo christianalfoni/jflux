@@ -1,5 +1,6 @@
 // Compiles DOM representations to a jQuery object. "registerComponents" is used
 // by "_init" to register nested components for later removal
+var $ = global.jQuery || require('jquery');
 var utils = require('./../utils.js');
 var Constructor = require('./Constructor.js');
 
