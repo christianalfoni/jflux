@@ -15,22 +15,26 @@ var run = function () {
   // Any links triggered, intercept and use router instead, passing
   // the path
   $('body').on('click', 'a', function (event) {
-    event.preventDefault();
 
-    // We have to turn off the onhashchange trigger to avoid triggering the route
-    // again, and at the same time allow for back/forward buttons
-    var hashchange = window.onhashchange;
-    window.onhashchange = null;
+    // Only grab it if there is no target attribute
+    if (!event.currentTarget.getAttribute('target')) {
+      event.preventDefault();
 
-    // href is full url, so to get the path we need to remove the origin and any
-    // baseUrl
-    var path = event.currentTarget.href.substr(location.origin.length);
-    router.goTo(path);
+      // We have to turn off the onhashchange trigger to avoid triggering the route
+      // again, and at the same time allow for back/forward buttons
+      var hashchange = window.onhashchange;
+      window.onhashchange = null;
 
-    // Put hash listening back into the event loop
-    setTimeout(function () {
-      window.onhashchange = hashchange;
-    }, 0);
+      // href is full url, so to get the path we need to remove the origin and any
+      // baseUrl
+      var path = event.currentTarget.href.substr(location.origin.length);
+      router.goTo(path);
+
+      // Put hash listening back into the event loop
+      setTimeout(function () {
+        window.onhashchange = hashchange;
+      }, 0);
+    }
   });
 
   if (config().pushState) {
