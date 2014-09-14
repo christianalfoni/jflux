@@ -897,6 +897,10 @@ var converters = {
   '$$-value': function ($el, context) {
     var value = utils.grabContextValue(context, $el.attr('$$-value'));
     $el.val(value);
+  },
+  '$$-href': function ($el, context) {
+    var value = utils.grabContextValue(context, $el.attr('$$-href'));
+    $el.attr('href', value);
   }
 };
 
@@ -925,7 +929,7 @@ var convertAttributes = require('./convertAttributes.js');
 
 var matchers = {
   short:  /<.*\/>/,
-  long: /<.*>.*<\/.*>/,
+  long: /<.*>[\s\S]*<\/.*>/, // [\s\S] matches linebreaks too
   closing: /<\/.*>/,
   opening: /<.*>/
 };
@@ -1350,10 +1354,20 @@ var run = function () {
   $('body').on('click', 'a', function (event) {
     event.preventDefault();
 
+    // We have to turn off the onhashchange trigger to avoid triggering the route
+    // again, and at the same time allow for back/forward buttons
+    var hashchange = window.onhashchange;
+    window.onhashchange = null;
+
     // href is full url, so to get the path we need to remove the origin and any
     // baseUrl
     var path = event.currentTarget.href.substr(location.origin.length);
     router.goTo(path);
+
+    // Put hash listening back into the event loop
+    setTimeout(function () {
+      window.onhashchange = hashchange;
+    }, 0);
   });
 
   if (config().pushState) {
@@ -1362,8 +1376,9 @@ var run = function () {
     };
   } else {
     window.onhashchange = function () {
+      console.log('hmmm', location.hash);
       router.goTo(location.hash.substr(1));
-    }
+    };
   }
 
   // Initial routing passing current pathname without baseUrl
@@ -1403,18 +1418,15 @@ exports.triggerRoute = function (route, compiledRoute, params) {
             initialRouting = false;
         }
     } else {
-        if (initialRouting || route.path !== location.pathname) {
-            location.href = config().baseUrl + '/#' + compiledRoute;
-            route.callback(params);
-            initialRouting = false;
-        }
+      location.href = config().baseUrl + '/#' + compiledRoute;
+      route.callback(params);
     }
 };
 
 exports.resolveRoute = function (path) {
     for (var x = 0; x < routes.length; x++) {
         var route = routes[x];
-        if (utils.matchRoute(path, route.path)) {
+        if (utils.matchRoute(path, route.path, utils.isParam)) {
             var params = utils.getParams(path, route.path, utils.isParam);
             return exports.triggerRoute(route, utils.compileRoute(route.path, params), params);
         }
@@ -1527,7 +1539,7 @@ exports.removeEmptyInArray = function (array) {
   return array;
 };
 
-exports.matchRoute = function (path, route) {
+exports.matchRoute = function (path, route, identifier) {
   if (route === '*') {
     return true;
   }
@@ -1539,7 +1551,7 @@ exports.matchRoute = function (path, route) {
     return false;
   }
   for (var x = 0; x < pathArray.length; x++) {
-    if (pathArray[x] !== routeArray[x] && !isParam(routeArray[x])) {
+    if (pathArray[x] !== routeArray[x] && !identifier(routeArray[x])) {
       return false;
     }
   }
