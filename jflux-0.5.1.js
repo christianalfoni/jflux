@@ -1397,6 +1397,7 @@ module.exports = run;
  * ====================================================================================
  */
 
+var $ = require('jquery');
 var utils = require('./utils.js');
 var config = require('./config.js');
 
@@ -1457,7 +1458,7 @@ exports.deferTo = function (path) {
 };
 
 module.exports = exports;
-},{"./config.js":"/Users/christianalfoni/Documents/dev/jflux/src/config.js","./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/state.js":[function(require,module,exports){
+},{"./config.js":"/Users/christianalfoni/Documents/dev/jflux/src/config.js","./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js","jquery":"jquery"}],"/Users/christianalfoni/Documents/dev/jflux/src/state.js":[function(require,module,exports){
 var EventEmitter = require('./EventEmitter.js');
 var utils = require('./utils.js');
 /*

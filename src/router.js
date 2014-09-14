@@ -5,6 +5,7 @@
  * ====================================================================================
  */
 
+var $ = require('jquery');
 var utils = require('./utils.js');
 var config = require('./config.js');
 

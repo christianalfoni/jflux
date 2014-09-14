@@ -1,8 +1,8 @@
 {
-  "name": "jFlux",
-  "version": "0.5.0",
+  "name": "jflux",
+  "version": "0.5.1",
   "description": "An easy to use unidirectional component based framework",
-  "main": "lib/jframework.js",
+  "main": "src/jflux.js",
   "scripts": {
     "test": "./node_modules/.bin/jasmine-node ./specs"
   },
