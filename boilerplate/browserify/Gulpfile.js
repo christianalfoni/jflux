@@ -40,12 +40,16 @@ var browserifyTask = function (bundleOptions) {
   var appBundler = browserify({
     entries: [appOptions.appDir + '/' + appOptions.entryFile],
     debug: bundleOptions.debug,
-    external: appOptions.external,
 
     // These options are needed by Watchify
     cache: {},
     packageCache: {},
     fullPaths: true
+  });
+
+  // Add libs as externals
+  appOptions.libs.forEach(function (lib) {
+    appBundler.external(lib);
   });
 
   // The rebundle process

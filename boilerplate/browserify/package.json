@@ -17,6 +17,7 @@
     "jasmine-node": "^1.14.5"
   },
   "dependencies": {
+    "jflux": "^0.5.0",
     "jquery": "^2.1.1"
   }
 }
