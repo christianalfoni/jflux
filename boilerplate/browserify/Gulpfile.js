@@ -20,7 +20,9 @@ var appOptions = {
   // Add other libraries here, if any
   libs: [
     'jquery',
-    'jflux'
+    'jflux',
+    'jsdom',
+    'proxyquire'
   ]
 
 };
