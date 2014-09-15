@@ -1,4 +1,69 @@
-!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define(["jquery"],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.jflux=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/Users/christianalfoni/Documents/dev/jflux/src/EventEmitter.js":[function(require,module,exports){
+!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define(["jquery"],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.jflux=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/Users/christianalfoni/Documents/dev/jflux/node_modules/browserify/node_modules/process/browser.js":[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+
+process.nextTick = (function () {
+    var canSetImmediate = typeof window !== 'undefined'
+    && window.setImmediate;
+    var canPost = typeof window !== 'undefined'
+    && window.postMessage && window.addEventListener
+    ;
+
+    if (canSetImmediate) {
+        return function (f) { return window.setImmediate(f) };
+    }
+
+    if (canPost) {
+        var queue = [];
+        window.addEventListener('message', function (ev) {
+            var source = ev.source;
+            if ((source === window || source === null) && ev.data === 'process-tick') {
+                ev.stopPropagation();
+                if (queue.length > 0) {
+                    var fn = queue.shift();
+                    fn();
+                }
+            }
+        }, true);
+
+        return function nextTick(fn) {
+            queue.push(fn);
+            window.postMessage('process-tick', '*');
+        };
+    }
+
+    return function nextTick(fn) {
+        setTimeout(fn, 0);
+    };
+})();
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+}
+
+// TODO(shtylman)
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+
+},{}],"/Users/christianalfoni/Documents/dev/jflux/src/EventEmitter.js":[function(require,module,exports){
 /*!
  * EventEmitter v4.2.8 - git.io/ee
  * Oliver Caldwell
@@ -518,7 +583,6 @@ var action = function () {
 
 module.exports = action;
 },{"./EventEmitter.js":"/Users/christianalfoni/Documents/dev/jflux/src/EventEmitter.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component.js":[function(require,module,exports){
-(function (global){
 /*
  * COMPONENT
  * ====================================================================================
@@ -526,7 +590,7 @@ module.exports = action;
  * ====================================================================================
  */
 
-var $ = global.jQuery || require('jquery');
+var dom = require('./dom.js');
 var utils = require('./utils.js');
 var createDomNodeRepresentation = require('./component/createDomNodeRepresentation.js');
 var diff = require('./component/diff.js');
@@ -629,7 +693,7 @@ Constructor.prototype = {
     this._listeners.forEach(function (listener) {
 
       var handler = function (event) {
-        listener.cb.call(component, $(event.currentTarget), event);
+        listener.cb.call(component, dom.$(event.currentTarget), event);
       };
 
       if (listener.target) {
@@ -804,8 +868,7 @@ module.exports = function (constr) {
     return component;
   }
 };
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./component/Constructor.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/Constructor.js","./component/compile.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/compile.js","./component/createDomNodeRepresentation.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/createDomNodeRepresentation.js","./component/diff.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/diff.js","./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js","jquery":"jquery"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/Constructor.js":[function(require,module,exports){
+},{"./component/Constructor.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/Constructor.js","./component/compile.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/compile.js","./component/createDomNodeRepresentation.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/createDomNodeRepresentation.js","./component/diff.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/diff.js","./dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/Constructor.js":[function(require,module,exports){
 function Component (props) {
   this._initialRenders = [];
   this._isRendering = false;
@@ -820,16 +883,15 @@ function Component (props) {
 
 module.exports = Component;
 },{}],"/Users/christianalfoni/Documents/dev/jflux/src/component/compile.js":[function(require,module,exports){
-(function (global){
 // Compiles DOM representations to a jQuery object. "registerComponents" is used
 // by "_init" to register nested components for later removal
-var $ = global.jQuery || require('jquery');
+var dom = require('./../dom.js');
 var utils = require('./../utils.js');
 var Constructor = require('./Constructor.js');
 
 var compile = function (renders, componentsList) {
 
-  var topNode = $();
+  var topNode = dom.$();
   renders.forEach(function (render) {
 
     // If the render is an array of children, append them
@@ -862,8 +924,7 @@ var compile = function (renders, componentsList) {
 };
 
 module.exports = compile;
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./../utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js","./Constructor.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/Constructor.js","jquery":"jquery"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/convertAttributes.js":[function(require,module,exports){
+},{"./../dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./../utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js","./Constructor.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/Constructor.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/convertAttributes.js":[function(require,module,exports){
 /*
  * CONVERTATTRIBUTES
  * ====================================================================================
@@ -922,14 +983,13 @@ var convertAttributes = function ($el, context) {
 
 module.exports = convertAttributes;
 },{"./../utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/createDomNodeRepresentation.js":[function(require,module,exports){
-(function (global){
 /*
  * CREATEDOMNODEREPRESENTATION
  * ====================================================================================
  * Analyses the arguments passed to "compile" and returns a representation
  * ====================================================================================
  */
-var $ = global.jQuery || require('jquery');
+var dom = require('./../dom.js');
 var convertAttributes = require('./convertAttributes.js');
 
 var matchers = {
@@ -953,7 +1013,7 @@ var createDomNodeRepresentation = function (arg, context) {
 
     return {
       hasChildren: false,
-      node: convertAttributes($(arg), context)
+      node: convertAttributes(dom.$(arg), context)
     };
 
     // E.g. "</div>"
@@ -969,7 +1029,7 @@ var createDomNodeRepresentation = function (arg, context) {
 
     return {
       hasChildren: true,
-      node: convertAttributes($(arg), context)
+      node: convertAttributes(dom.$(arg), context)
     }
 
     // E.g. "hello world"
@@ -977,17 +1037,15 @@ var createDomNodeRepresentation = function (arg, context) {
 
     return {
       hasChildren: false,
-      node: $(document.createTextNode(arg))
+      node: dom.$(dom.document.createTextNode(arg))
     }
 
   }
 };
 
 module.exports = createDomNodeRepresentation;
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./convertAttributes.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/convertAttributes.js","jquery":"jquery"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/diff.js":[function(require,module,exports){
-(function (global){
-var jQuery = global.jQuery || require('jquery');
+},{"./../dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./convertAttributes.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/convertAttributes.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/diff.js":[function(require,module,exports){
+var dom = require('./../dom.js');
 var compile = require('./compile.js');
 var Constructor = require('./Constructor.js');
 var addToList = require('./diff/addToList.js');
@@ -1032,7 +1090,7 @@ var diff = function (renders, initialRenders, node) {
 
       initialRenders[index].get(0).nodeValue = renders.text();
 
-    } else if (renders instanceof jQuery) {
+    } else if (renders instanceof dom.$) {
 
       diffAttributes(renders, initialRenders[index]);
 
@@ -1043,8 +1101,7 @@ var diff = function (renders, initialRenders, node) {
 };
 
 module.exports = diff;
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./../utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js","./Constructor.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/Constructor.js","./compile.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/compile.js","./diff/addToList.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/diff/addToList.js","./diff/diffAttributes.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/diff/diffAttributes.js","./diff/removeFromList.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/diff/removeFromList.js","jquery":"jquery"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/diff/addToList.js":[function(require,module,exports){
+},{"./../dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./../utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js","./Constructor.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/Constructor.js","./compile.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/compile.js","./diff/addToList.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/diff/addToList.js","./diff/diffAttributes.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/diff/diffAttributes.js","./diff/removeFromList.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/diff/removeFromList.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/diff/addToList.js":[function(require,module,exports){
 var Constructor = require('./../Constructor.js');
 var compile = require('./../compile.js');
 
@@ -1195,9 +1252,30 @@ var config = function (options) {
 };
 
 module.exports = config;
-},{"./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/jflux.js":[function(require,module,exports){
+},{"./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/dom.js":[function(require,module,exports){
 (function (global){
-var $ = global.jQuery || require('jquery');
+module.exports = {
+  $: function () {
+
+    if (global.jQuery) {
+      this.$ = global.jQuery;
+      return this.$.apply(this.$, arguments);
+    } else if (typeof window !== 'undefined') {
+      this.$ = require('jquery');
+      return this.$.apply(this.$, arguments);
+    }
+
+  },
+  document: global.document,
+  setWindow: function (window) {
+    this.$ = require('jquery')(window);
+    this.document = window.document;
+  }
+};
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"jquery":"jquery"}],"/Users/christianalfoni/Documents/dev/jflux/src/jflux.js":[function(require,module,exports){
+(function (global){
+var dom = require('./dom.js');
 var render = require('./jflux/render.js');
 var generateId = require('./jflux/generateId.js');
 var config = require('./config.js');
@@ -1207,6 +1285,7 @@ var router = require('./router.js');
 var run = require('./jflux/run.js');
 var action = require('./action.js');
 var state = require('./state.js');
+var test = require('./test.js');
 
 var exports = {
     run: run,
@@ -1217,20 +1296,32 @@ var exports = {
     component: component,
     route: router.route,
     action: action,
-    state: state
+    state: state,
+    test: test,
+    fakeState: function (exports) {
+      return this.state(function () {
+        this.exports = exports;
+      });
+    }
 };
 
-$(function () {
-    if (!window.define && config().autoRun) {
-        exports.run();
+
+// If not running in Node
+if (typeof window === 'undefined') {
+
+  dom.$(function () {
+    if (!global.define && config().autoRun) {
+      exports.run();
     }
     if (config().json) {
-        $.ajaxSetup({
-            contentType: 'application/json',
-            dataType: 'json'
-        });
+      $.ajaxSetup({
+        contentType: 'application/json',
+        dataType: 'json'
+      });
     }
-});
+  });
+
+}
 
 // If running in global mode, expose $$
 if (!global.exports && !global.module && (!global.define || !global.define.amd)) {
@@ -1240,7 +1331,7 @@ if (!global.exports && !global.module && (!global.define || !global.define.amd))
 
 module.exports = exports;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./action.js":"/Users/christianalfoni/Documents/dev/jflux/src/action.js","./component.js":"/Users/christianalfoni/Documents/dev/jflux/src/component.js","./config.js":"/Users/christianalfoni/Documents/dev/jflux/src/config.js","./jflux/generateId.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/generateId.js","./jflux/path.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/path.js","./jflux/render.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/render.js","./jflux/run.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/run.js","./router.js":"/Users/christianalfoni/Documents/dev/jflux/src/router.js","./state.js":"/Users/christianalfoni/Documents/dev/jflux/src/state.js","jquery":"jquery"}],"/Users/christianalfoni/Documents/dev/jflux/src/jflux/generateId.js":[function(require,module,exports){
+},{"./action.js":"/Users/christianalfoni/Documents/dev/jflux/src/action.js","./component.js":"/Users/christianalfoni/Documents/dev/jflux/src/component.js","./config.js":"/Users/christianalfoni/Documents/dev/jflux/src/config.js","./dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./jflux/generateId.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/generateId.js","./jflux/path.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/path.js","./jflux/render.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/render.js","./jflux/run.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/run.js","./router.js":"/Users/christianalfoni/Documents/dev/jflux/src/router.js","./state.js":"/Users/christianalfoni/Documents/dev/jflux/src/state.js","./test.js":"/Users/christianalfoni/Documents/dev/jflux/src/test.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/jflux/generateId.js":[function(require,module,exports){
 /*
  * GENERATEID
  * ====================================================================================
@@ -1280,7 +1371,6 @@ var path = function () {
 
 module.exports = path;
 },{"./../config.js":"/Users/christianalfoni/Documents/dev/jflux/src/config.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/jflux/render.js":[function(require,module,exports){
-(function (global){
 /*
  * RENDER
  * ====================================================================================
@@ -1291,15 +1381,15 @@ module.exports = path;
  * ====================================================================================
  */
 
-var $ = global.jQuery || require('jquery');
+var dom = require('./../dom.js');
 var utils = require('./../utils.js');
 
 // Components rendered to the DOM will be stored in this array, as a lookup
 var _renderedComponents = [];
 
 // Register an event that triggers when component nodes are removed
-if ($.event) {
-  $.event.special.destroy = {
+if (dom.$.event) {
+  dom.$.event.special.destroy = {
     remove: function (listener) {
 
       // The "destroy" callback (handler) removes the component and returns it
@@ -1328,7 +1418,7 @@ var render = function (component, target) {
   } else if (!existingComponent || existingComponent._constr !== component._constr) {
 
     component._init();
-    $(target).html(component.$el);
+    dom.$(target).html(component.$el);
     _renderedComponents.push({
       component: component,
       target: target
@@ -1338,9 +1428,7 @@ var render = function (component, target) {
 };
 
 module.exports = render;
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./../utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js","jquery":"jquery"}],"/Users/christianalfoni/Documents/dev/jflux/src/jflux/run.js":[function(require,module,exports){
-(function (global){
+},{"./../dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./../utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/jflux/run.js":[function(require,module,exports){
 /*
  * RUN
  * ====================================================================================
@@ -1349,7 +1437,7 @@ module.exports = render;
  * ====================================================================================
  */
 
-var $ = global.jQuery || require('jquery');
+var dom = require('./../dom.js');
 var router = require('./../router.js');
 var config = require('./../config.js');
 
@@ -1357,7 +1445,7 @@ var run = function () {
 
   // Any links triggered, intercept and use router instead, passing
   // the path
-  $('body').on('click', 'a', function (event) {
+  dom.$('body').on('click', 'a', function (event) {
 
     // Only grab it if there is no target attribute
     if (!event.currentTarget.getAttribute('target')) {
@@ -1398,9 +1486,7 @@ var run = function () {
 };
 
 module.exports = run;
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./../config.js":"/Users/christianalfoni/Documents/dev/jflux/src/config.js","./../router.js":"/Users/christianalfoni/Documents/dev/jflux/src/router.js","jquery":"jquery"}],"/Users/christianalfoni/Documents/dev/jflux/src/router.js":[function(require,module,exports){
-(function (global){
+},{"./../config.js":"/Users/christianalfoni/Documents/dev/jflux/src/config.js","./../dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./../router.js":"/Users/christianalfoni/Documents/dev/jflux/src/router.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/router.js":[function(require,module,exports){
 /*
  * ROUTER
  * ====================================================================================
@@ -1408,7 +1494,7 @@ module.exports = run;
  * ====================================================================================
  */
 
-var $ = global.jQuery || require('jquery');
+var dom = require('./dom.js');
 var utils = require('./utils.js');
 var config = require('./config.js');
 
@@ -1457,7 +1543,7 @@ exports.route = function (path, callback) {
 };
 
 exports.goTo = function (path) {
-    $(function () {
+    dom.$(function () {
         exports.resolveRoute(config().pushState ? config().baseUrl + path : path);
     });
 };
@@ -1469,8 +1555,7 @@ exports.deferTo = function (path) {
 };
 
 module.exports = exports;
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./config.js":"/Users/christianalfoni/Documents/dev/jflux/src/config.js","./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js","jquery":"jquery"}],"/Users/christianalfoni/Documents/dev/jflux/src/state.js":[function(require,module,exports){
+},{"./config.js":"/Users/christianalfoni/Documents/dev/jflux/src/config.js","./dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/state.js":[function(require,module,exports){
 var EventEmitter = require('./EventEmitter.js');
 var utils = require('./utils.js');
 /*
@@ -1510,7 +1595,44 @@ state.prototype = {
 
 module.exports = state;
 
-},{"./EventEmitter.js":"/Users/christianalfoni/Documents/dev/jflux/src/EventEmitter.js","./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/utils.js":[function(require,module,exports){
+},{"./EventEmitter.js":"/Users/christianalfoni/Documents/dev/jflux/src/EventEmitter.js","./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/test.js":[function(require,module,exports){
+(function (process){
+var dom = require('./dom.js');
+
+module.exports = function (file, stubs, test) {
+
+  var proxyquire = require('proxyquire').noPreserveCache();
+  var env = require('jsdom').env;
+  var html = '<html><body></body></html>';
+
+  if (arguments.length === 2) {
+    test = stubs;
+    stubs = null;
+  }
+
+  file = process.cwd() + '/' + file;
+
+  env(html, function (errors, window) {
+
+    dom.setWindow(window);
+    var module;
+
+    if (stubs) {
+      module = proxyquire(file, stubs);
+    } else {
+      module = require(file);
+    }
+    try {
+      test(module, dom.$);
+    } catch (e) {
+      console.log(e);
+    }
+    window.close();
+  });
+
+};
+}).call(this,require('_process'))
+},{"./dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","_process":"/Users/christianalfoni/Documents/dev/jflux/node_modules/browserify/node_modules/process/browser.js","jsdom":"jsdom","proxyquire":"proxyquire"}],"/Users/christianalfoni/Documents/dev/jflux/src/utils.js":[function(require,module,exports){
 var exports = {};
 
 

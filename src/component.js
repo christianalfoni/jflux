@@ -5,7 +5,7 @@
  * ====================================================================================
  */
 
-var $ = global.jQuery || require('jquery');
+var dom = require('./dom.js');
 var utils = require('./utils.js');
 var createDomNodeRepresentation = require('./component/createDomNodeRepresentation.js');
 var diff = require('./component/diff.js');
@@ -108,7 +108,7 @@ Constructor.prototype = {
     this._listeners.forEach(function (listener) {
 
       var handler = function (event) {
-        listener.cb.call(component, $(event.currentTarget), event);
+        listener.cb.call(component, dom.$(event.currentTarget), event);
       };
 
       if (listener.target) {

@@ -6,7 +6,7 @@
  * ====================================================================================
  */
 
-var $ = global.jQuery || require('jquery');
+var dom = require('./../dom.js');
 var router = require('./../router.js');
 var config = require('./../config.js');
 
@@ -14,7 +14,7 @@ var run = function () {
 
   // Any links triggered, intercept and use router instead, passing
   // the path
-  $('body').on('click', 'a', function (event) {
+  dom.$('body').on('click', 'a', function (event) {
 
     // Only grab it if there is no target attribute
     if (!event.currentTarget.getAttribute('target')) {

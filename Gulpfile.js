@@ -19,7 +19,9 @@ var runBrowserifyTask = function (options) {
     cache: {}, packageCache: {}, fullPaths: true
   })
     .require(require.resolve('./src/jflux.js'), { entry: true })
-    .external('jquery');
+    .external('jquery')
+    .external('jsdom')
+    .external('proxyquire');
 
   // The actual rebundle process
   var rebundle = function () {

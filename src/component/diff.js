@@ -1,4 +1,4 @@
-var jQuery = global.jQuery || require('jquery');
+var dom = require('./../dom.js');
 var compile = require('./compile.js');
 var Constructor = require('./Constructor.js');
 var addToList = require('./diff/addToList.js');
@@ -43,7 +43,7 @@ var diff = function (renders, initialRenders, node) {
 
       initialRenders[index].get(0).nodeValue = renders.text();
 
-    } else if (renders instanceof jQuery) {
+    } else if (renders instanceof dom.$) {
 
       diffAttributes(renders, initialRenders[index]);
 

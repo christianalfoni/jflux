@@ -8,15 +8,15 @@
  * ====================================================================================
  */
 
-var $ = global.jQuery || require('jquery');
+var dom = require('./../dom.js');
 var utils = require('./../utils.js');
 
 // Components rendered to the DOM will be stored in this array, as a lookup
 var _renderedComponents = [];
 
 // Register an event that triggers when component nodes are removed
-if ($.event) {
-  $.event.special.destroy = {
+if (dom.$.event) {
+  dom.$.event.special.destroy = {
     remove: function (listener) {
 
       // The "destroy" callback (handler) removes the component and returns it
@@ -45,7 +45,7 @@ var render = function (component, target) {
   } else if (!existingComponent || existingComponent._constr !== component._constr) {
 
     component._init();
-    $(target).html(component.$el);
+    dom.$(target).html(component.$el);
     _renderedComponents.push({
       component: component,
       target: target

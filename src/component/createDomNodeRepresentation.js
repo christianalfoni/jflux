@@ -4,7 +4,7 @@
  * Analyses the arguments passed to "compile" and returns a representation
  * ====================================================================================
  */
-var $ = global.jQuery || require('jquery');
+var dom = require('./../dom.js');
 var convertAttributes = require('./convertAttributes.js');
 
 var matchers = {
@@ -28,7 +28,7 @@ var createDomNodeRepresentation = function (arg, context) {
 
     return {
       hasChildren: false,
-      node: convertAttributes($(arg), context)
+      node: convertAttributes(dom.$(arg), context)
     };
 
     // E.g. "</div>"
@@ -44,7 +44,7 @@ var createDomNodeRepresentation = function (arg, context) {
 
     return {
       hasChildren: true,
-      node: convertAttributes($(arg), context)
+      node: convertAttributes(dom.$(arg), context)
     }
 
     // E.g. "hello world"
@@ -52,7 +52,7 @@ var createDomNodeRepresentation = function (arg, context) {
 
     return {
       hasChildren: false,
-      node: $(document.createTextNode(arg))
+      node: dom.$(dom.document.createTextNode(arg))
     }
 
   }

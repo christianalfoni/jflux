@@ -5,7 +5,7 @@
  * ====================================================================================
  */
 
-var $ = global.jQuery || require('jquery');
+var dom = require('./dom.js');
 var utils = require('./utils.js');
 var config = require('./config.js');
 
@@ -54,7 +54,7 @@ exports.route = function (path, callback) {
 };
 
 exports.goTo = function (path) {
-    $(function () {
+    dom.$(function () {
         exports.resolveRoute(config().pushState ? config().baseUrl + path : path);
     });
 };

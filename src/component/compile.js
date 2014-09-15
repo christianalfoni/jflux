@@ -1,12 +1,12 @@
 // Compiles DOM representations to a jQuery object. "registerComponents" is used
 // by "_init" to register nested components for later removal
-var $ = global.jQuery || require('jquery');
+var dom = require('./../dom.js');
 var utils = require('./../utils.js');
 var Constructor = require('./Constructor.js');
 
 var compile = function (renders, componentsList) {
 
-  var topNode = $();
+  var topNode = dom.$();
   renders.forEach(function (render) {
 
     // If the render is an array of children, append them
