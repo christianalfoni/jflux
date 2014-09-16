@@ -554,6 +554,7 @@ var MyComponent = $$.component(function () {
   };
 
 });
+```
 
 ####<a name="components-composing">Composing</a>
 A component DOM representation can take other components as arguments.
