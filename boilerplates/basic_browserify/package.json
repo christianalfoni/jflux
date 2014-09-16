@@ -1,0 +1,27 @@
+{
+  "name": "my-jflux-project",
+  "version": "0.0.1",
+  "description": "My project",
+  "scripts": {
+    "test": "./node_modules/.bin/jasmine-node ./specs"
+  },
+  "author": "Jon Doe",
+  "devDependencies": {
+    "browserify": "^5.11.2",
+    "gulp": "^3.8.8",
+    "gulp-if": "^1.2.4",
+    "gulp-notify": "^1.6.0",
+    "gulp-shell": "^0.2.9",
+    "gulp-streamify": "0.0.5",
+    "gulp-uglify": "^1.0.1",
+    "vinyl-source-stream": "^1.0.0",
+    "watchify": "^1.0.2",
+    "jasmine-node": "^1.14.5",
+    "jsdom": "^1.0.0-pre.6",
+    "proxyquire": "^1.0.1"
+  },
+  "dependencies": {
+    "jflux": "^0.6.1",
+    "jquery": "^2.1.1"
+  }
+}

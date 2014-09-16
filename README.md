@@ -11,5 +11,10 @@ Clone the repo and run `python -m SimpleHTTPServer 3000` in your terminal at the
 ### The background
 Please read the following post if you are interested in the background of this project: [jQuery as a framework, could that work?](http://christianalfoni.github.io/javascript/2014/09/08/jquery-as-a-framework-could-that-work.html)
 
+### Change log
+
+**0.6.1**
+First change log tracking version
+
 ### Contribute
 Coming soon...
