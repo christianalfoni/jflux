@@ -10,15 +10,38 @@ var shell = require('gulp-shell');
 
 var appOptions = {
 
+  /*
+   * DIRECTORIES
+   */
+
+  // Where your app lives
   appDir: './app',
+
+  // Where your production version is deployed
   distDir: './dist',
+
+  // Where you bundled development version will run from
   buildDir: './build',
+
+  // Where your tests live
   specsDir: './specs',
+
+  /*
+   * BUNDLE FILES
+   */
+
+  // The name of your main app file
   entryFile: 'main.js',
+
+  // The name of your bundled vendors
   vendorsFile: 'vendors.js',
 
-  // Add other libraries here, if any
-  libs: [
+  /*
+   * VENDORS
+   */
+
+  // Add other vendors here, if any
+  vendors: [
     'jquery',
     'jflux'
   ]
@@ -33,7 +56,7 @@ var browserifyTask = function (bundleOptions) {
   // on project changes
   var vendorBundler = browserify({
     debug: bundleOptions.debug,
-    require: appOptions.libs
+    require: appOptions.vendors
   });
 
   // This bundle is for the application
@@ -47,9 +70,9 @@ var browserifyTask = function (bundleOptions) {
     fullPaths: true
   });
 
-  // Add libs as externals
-  appOptions.libs.forEach(function (lib) {
-    appBundler.external(lib);
+  // Add vendors as externals
+  appOptions.vendors.forEach(function (vendor) {
+    appBundler.external(vendor);
   });
 
   // The rebundle process
