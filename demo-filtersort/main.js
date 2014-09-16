@@ -1,5 +1,3 @@
-$$.config({autoRoute: false});
-
 /*
  *  ACTIONS
  */
@@ -71,18 +69,20 @@ var List = $$.component(function () {
     }, 0);
   };
 
+  this.compileNames = function (compile) {
+    return compile(
+      '<li $$-id="item._id">',
+        this.item.firstName + ' ' + this.item.lastName,
+      '</li>'
+    );
+  };
+
   this.listenTo(ListState, this.update);
   this.listenTo('click', '#sort-inc', this.sortIncreasing);
   this.listenTo('click', '#sort-dec', this.sortDecreasing);
   this.listenTo('keydown', '#filter', this.filter);
   this.render = function (compile) {
-    var list = this.map(ListState.getList(), function (compile) {
-      return compile(
-        '<li $$-id="_id">', 
-          this.firstName + ' ' + this.lastName, 
-        '</li>'
-        );
-    });
+    var list = this.map(ListState.getList(), this.compileNames);
     return compile(
       '<div>',
         '<button id="sort-inc">Sort inc</button>',

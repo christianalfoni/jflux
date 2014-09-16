@@ -855,7 +855,11 @@ Constructor.prototype = {
   map: function (array, cb) {
     var component = this;
     return array.map(function (item) {
-      return cb.call(item, component._compiler.bind(item));
+      var context = {
+        item: item,
+        props: component.props
+      };
+      return cb.call(context, component._compiler.bind(context));
     });
   }
 };
@@ -1305,9 +1309,8 @@ var exports = {
     }
 };
 
-
 // If not running in Node
-if (typeof window === 'undefined') {
+if (typeof window !== 'undefined') {
 
   dom.$(function () {
     if (!global.define && config().autoRun) {
@@ -1474,7 +1477,6 @@ var run = function () {
     };
   } else {
     window.onhashchange = function () {
-      console.log('hmmm', location.hash);
       router.goTo(location.hash.substr(1));
     };
   }

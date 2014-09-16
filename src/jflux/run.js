@@ -43,7 +43,6 @@ var run = function () {
     };
   } else {
     window.onhashchange = function () {
-      console.log('hmmm', location.hash);
       router.goTo(location.hash.substr(1));
     };
   }

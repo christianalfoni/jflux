@@ -270,7 +270,11 @@ Constructor.prototype = {
   map: function (array, cb) {
     var component = this;
     return array.map(function (item) {
-      return cb.call(item, component._compiler.bind(item));
+      var context = {
+        item: item,
+        props: component.props
+      };
+      return cb.call(context, component._compiler.bind(context));
     });
   }
 };

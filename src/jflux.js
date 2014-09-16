@@ -28,9 +28,8 @@ var exports = {
     }
 };
 
-
 // If not running in Node
-if (typeof window === 'undefined') {
+if (typeof window !== 'undefined') {
 
   dom.$(function () {
     if (!global.define && config().autoRun) {

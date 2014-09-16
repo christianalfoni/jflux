@@ -62,17 +62,19 @@ var MessagesList = $$.component(function () {
     this.$('input').val('');
   };
 
+  this.compileMessages = function (compile) {
+    return compile(
+      '<li $$-id="item.id">',
+        this.item.text,
+      '</li>'
+    );
+  };
+
   this.listenTo(MessagesState, this.update);
   this.listenTo('submit', 'form', this.addMessage);
   
   this.render = function (compile) {
-    var messages = this.map(MessagesState.getMessages(), function (compile) {
-       return compile(
-        '<li $$-id="id">',
-          this.text,
-        '</li>'
-      ); 
-    });
+    var messages = this.map(MessagesState.getMessages(), this.compileMessages);
     return compile(
       '<div>',
         '<form>',

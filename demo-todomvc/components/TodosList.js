@@ -6,17 +6,20 @@ define(['jflux', 'AppState', 'actions', 'components/Todo'], function ($$, AppSta
       actions.toggleAllTodos($el.is(':checked'));
     };
 
+    this.compileTodos = function (compile) {
+      return compile(
+        Todo({id: this.item.id, todo: this.item})
+      );
+    };
+
     this.listenTo(AppState, this.update);
     this.listenTo('change', '#toggle-all', this.toggleAll);
     this.render = function (compile) {
 
-      var todos = this.map(AppState.getTodos(), function (compile) {
-        return compile(
-          Todo({id: this.id, todo: this})
-        );
-      });
+      var todos = this.map(AppState.getTodos(), this.compileTodos);
 
       this.allChecked = AppState.allCompleted() && todos.length > 0;
+
       return compile(
         '<div>',
           '<input id="toggle-all" type="checkbox" $$-checked="allChecked"/>',

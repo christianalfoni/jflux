@@ -24,6 +24,7 @@ An easy to use unidirectional component based framework.
   - [Components](#components)
     - [Create a component](#components-createcomponent)
     - [Compile](#components-compile)
+    - [Properties](#components-properties)
     - [Map](#components-map)
     - [Attributes](#components-attributes)
       - [$$-id](#components-attributes-id)
@@ -32,7 +33,7 @@ An easy to use unidirectional component based framework.
       - [$$-disabled](#components-attributes-disabled)
       - [$$-value](#components-attributes-value)
       - [$$-style](#components-attributes-style)
-    - [Properties](#components-properties)
+      - [$$-href](#components-attributes-href)
     - [Composing](#components-composing)
     - [Listening to UI events](#components-listeningtouievents)
     - [Plugins](#components-plugins)
@@ -347,7 +348,7 @@ can live inside other components.
 
 ####<a name="components-creatingacomponent">Creating a component</a>
 The minimum boilerplate for a component is to define a render callback that
-returns a template with a top node. The default render method compiles a single `div`.
+returns a DOM representation with a top node. The default render method compiles a single `div`.
 ```javascript
 var MyComponent = $$.component(function () {
 
@@ -363,7 +364,8 @@ var MyComponent = $$.component(function () {
 ```
 
 ####<a name="components-compile">Compile</a>
-The first and only argument passed to a components render method is the `template` function. The compile function returns a UI data structure that jFlux understands. Compile can take the following arguments:
+The first and only argument passed to a components render method is the `compile` function. The compile function
+returns a UI data structure that jFlux understands. Compile can take the following arguments:
 
 - string
 - number
@@ -373,19 +375,42 @@ The first and only argument passed to a components render method is the `templat
 The arguments builds a DOM structure that will be appended to wherever the component
 is appended or diffed with existing render of the component.
 
-####<a name="components-map">map</a>
-If you need to compile a list of elements you can use the `map` method provided. It takes its own compile function. The context of the map callback will be the item from the list:
+####<a name="components-properties">Properties</a>
+Components can receive properties. These properties are passed when a component is rendered to an existing DOM node, or when composed into an other component. The properties are an object that can take any values. You point to the passed properties with: `this.props`.
+
 ```javascript
 var MyComponent = $$.component(function () {
 
   this.render = function (compile) {
-    var list = this.map(['foo', 'bar'], function (compile) {
-      return compile(
-        '<li>',
-          this,
-        '</li>'
-      );
-    });
+    return compile(
+      '<h1>',
+        this.props.title,
+      '</h1>'
+    );
+  };
+
+});
+
+$$.render(MyComponent({title: 'Hello world!'}), 'body');
+```
+
+####<a name="components-map">Map</a>
+If you need to compile a list of elements you can use the `map` method provided. It takes its own compile function.
+The context of the map callback will be unique. You can use that context to add "render-props", point to the item
+in the current iteration and the "props" passed to the component itself.
+```javascript
+var MyComponent = $$.component(function () {
+
+  this.compileList = function (compile) {
+    return compile(
+      '<li>',
+        this.item,
+      '</li>'
+    );
+  };
+
+  this.render = function (compile) {
+    var list = this.map(['foo', 'bar'], this.compileList);
     return compile(
       '<ul>',
         list,
@@ -397,19 +422,23 @@ var MyComponent = $$.component(function () {
 ```
 
 ####<a name="components-attributes">Attributes</a>
-You can add attributes as you normally would, but jFlux is aware of the context you are in an can get values from that context. You have your main component context, where you define render etc., but you also have a context when iterating lists which you can grab values from.
+You can add attributes as you normally would, but jFlux is aware of the context you are in an can get values from that context.
+You have your main component context, where you define render etc., but you also have a context when iterating lists which you
+can grab values from. In a list the item iterated over is the property "item". You also have access to "props". The
+rest of the context you can use to add yourn own "render props".
 
 ```javascript
 var MyComponent = $$.component(function () {
   this.myList = [{id: '1', title: 'foo'}, {id: '2', title: 'bar'}];
+  this.compileList = function (compile) {
+    return compile(
+      '<div $$-id="item.id">' + this.item.title + '</div>'
+    );
+  };
   this.render = function (compile) {
 
     // In context of a list
-    var list = this.map(this.myList, function (compile) {
-      return compile(
-        '<div $$-id="id">' + this.title + '</div>'
-      );
-    });
+    var list = this.map(this.myList, this.compileList);
 
     // In context of the render method
     this.myId = 'myId';
@@ -513,27 +542,21 @@ var MyComponent = $$.component(function () {
 });
 ```
 
-####<a name="components-properties">Properties</a>
-Components can receive properties. These properties are passed when a component is rendered to an existing DOM node, or when composed into an other component. The properties are an object that can take any values. You point to the passed properties with: `this.props`.
-
+#####<a name="components-attributes-style">$$-style</a>
 ```javascript
 var MyComponent = $$.component(function () {
 
   this.render = function (compile) {
+    this.url = 'http://www.jflux.io';
     return compile(
-      '<h1>',
-        this.props.title,
-      '</h1>'
+      '<a $$-href="url"/>'
     );
   };
 
 });
 
-$$.render(MyComponent({title: 'Hello world!'}), 'body');
-```
-
 ####<a name="components-composing">Composing</a>
-A component template can take other components as arguments.
+A component DOM representation can take other components as arguments.
 
 ```javascript
 var Item = $$.component(function () {
@@ -585,7 +608,7 @@ var MyComponent = $$.component(function () {
 });
 ```
 
-If the node you listen to is nested in the template, use delegation:
+If the node you listen to is nested in the DOM representation, use delegation:
 
 ```javascript
 var MyComponent = $$.component(function () {
@@ -616,7 +639,7 @@ var MyComponent = $$.component(function () {
 
   // First argument is the name of the plugin, f.ex. $('a').dropdown() will be
   // 'dropdown'. The second argument is only needed if the plugin is triggered
-  // on a nested element in the template. The last argument are the options passed
+  // on a nested element in the DOM representation. The last argument are the options passed
   // to the plugin
   this.plugin('someJQueryPlugin', 'span', {someOption: 'someValue'});
   this.render = function (compile) {
@@ -645,13 +668,13 @@ var MyComponent = $$.component(function () {
   };
 
   this.listenTo('click', 'button', this.changeColor);
-  this.render(function () {
-    return template(
+  this.render = function (compile) {
+    return compile(
       '<div $$-style="style">',
         '<button>Change color</button>',
       '</div>'
     );
-  });
+  };
 });
 ```
 
@@ -676,16 +699,16 @@ Sometimes you want to bind to inputs. The inputs might affect a state in your co
 input change:
 
 ```javascript
-var MyComponent = $$.component(function (template) {
+var MyComponent = $$.component(function () {
   var todo = {
     title: '',
     description: ''
   };
   this.bind(model, 'title', 'input[name="title"]');
   this.bind(model, 'description', 'input[name="description"]');
-  this.render(function () {
+  this.render = function (compile) {
     this.invalidTodo = !(todo.title && todo.description);
-    return template(
+    return compile(
       '<div>',
         '<input name="title" type="text"/>',
         '<input name="description" type="text"/>',
@@ -694,7 +717,7 @@ var MyComponent = $$.component(function (template) {
         '</button>',
       '</div>'
     );
-  });
+  };
 });
 ```
 The button in this example will only be enabled if there is both a title and a description.
