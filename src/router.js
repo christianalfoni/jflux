@@ -40,7 +40,9 @@ exports.resolveRoute = function (path) {
             return exports.triggerRoute(route, utils.compileRoute(route.path, params), params);
         }
     }
-    throw new Error('No routes match ' + path);
+    if (routes.length) {
+      throw new Error('No routes match ' + path);
+    }
 };
 
 exports.route = function (path, callback) {

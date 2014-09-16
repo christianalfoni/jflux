@@ -2,9 +2,18 @@ var dom = require('./dom.js');
 
 module.exports = function (file, stubs, test) {
 
-  var proxyquire = require('proxyquire').noPreserveCache();
-  var env = require('jsdom').env;
+  // Trick browserify/webpack to not notice these deps as they are only used in Node
+  var req = require;
+  var proxyquire = req('proxyquire').noPreserveCache();
+  var env = req('jsdom').env;
   var html = '<html><body></body></html>';
+  var getModule = function () {
+    if (stubs) {
+      return proxyquire(file, stubs);
+    } else {
+      return require(file);
+    }
+  };
 
   if (arguments.length === 2) {
     test = stubs;
@@ -13,22 +22,24 @@ module.exports = function (file, stubs, test) {
 
   file = process.cwd() + '/' + file;
 
-  env(html, function (errors, window) {
+  var module = getModule(file, stubs);
 
-    dom.setWindow(window);
-    var module;
+  // If test has no arguments, do no fire up JSDOM
+  if (test.length < 2) {
+    test(module);
+  } else {
+    env(html, function (errors, window) {
 
-    if (stubs) {
-      module = proxyquire(file, stubs);
-    } else {
-      module = require(file);
-    }
-    try {
-      test(module, dom.$);
-    } catch (e) {
-      console.log(e);
-    }
-    window.close();
-  });
+      dom.setWindow(window);
+
+
+      try {
+        test(module, dom.$);
+      } catch (e) {
+        console.log(e);
+      }
+      window.close();
+    });
+  }
 
 };

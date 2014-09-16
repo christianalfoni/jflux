@@ -542,7 +542,7 @@ var MyComponent = $$.component(function () {
 });
 ```
 
-#####<a name="components-attributes-style">$$-style</a>
+#####<a name="components-attributes-href">$$-href</a>
 ```javascript
 var MyComponent = $$.component(function () {
 

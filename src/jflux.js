@@ -36,7 +36,7 @@ if (typeof window !== 'undefined') {
       exports.run();
     }
     if (config().json) {
-      $.ajaxSetup({
+      dom.$.ajaxSetup({
         contentType: 'application/json',
         dataType: 'json'
       });
