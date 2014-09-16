@@ -570,12 +570,13 @@ var Item = $$.component(function () {
   };
 });
 var List = $$.component(function () {
+  this.compileItems = function (compile) {
+    return compile(
+      Item({label: this})
+    );
+  };
   this.render = function (compile) {
-    var items = this.map(['foo', 'bar'], function (compile) {
-        return compile(
-          Item({label: this})
-        );
-      });
+    var items = this.map(['foo', 'bar'], this.compileItems);
     return compile(
       '<ul>',
         Item({label: 'First in list'}),
