@@ -3,11 +3,11 @@ var Constructor = require('./../Constructor.js');
 var removeFromList = function (renders, initialRenders) {
 
   var rendersIds = renders.map(function (render) {
-    return render[0] instanceof Constructor ? render[0].$el.attr('id') : render[0].attr('id');
+    return render[0] instanceof Constructor ? render[0].props.id : render[0].attr('id');
   });
 
   var initialRendersIds = initialRenders.map(function (initialRender) {
-    return initialRender[0] instanceof Constructor ? initialRender[0].$el.attr('id') : initialRender[0].attr('id');
+    return initialRender[0] instanceof Constructor ? initialRender[0].props.id : initialRender[0].attr('id');
   });
 
   // Go through list backwards and remove item

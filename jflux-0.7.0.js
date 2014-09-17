@@ -782,7 +782,6 @@ Constructor.prototype = {
   },
   update: function () {
     this._render();
-    this._compile(this._renders);
     this._diff(this._renders, this._initialRenders);
   },
   render: function (compile) {
@@ -901,17 +900,20 @@ var compile = function (renders, componentsList) {
     // If the render is an array of children, append them
     // to the last child of the topNode
     if (Array.isArray(render) && render.isChildArray) {
+
       topNode.last().append(compile(render), componentsList);
 
       // If the render is a normal array, meaning it is an array of compiled
       // objects (Like using this.map to create a list in the component). Flatten
       // the array, compile it and append to the top node
     } else if (Array.isArray(render)) {
+
       topNode = topNode.add(compile(utils.flatten(render), componentsList));
 
       // If the render is a component, initialize it and append. If
       // this is during initializing add the component to a lookup list
     } else if (render instanceof Constructor) {
+
       topNode = topNode.add(render._init().$el);
 
       if (componentsList) {
@@ -1063,6 +1065,7 @@ var diff = function (renders, initialRenders, node) {
 
     // If it is an array of children, diff that array
     if (Array.isArray(renders) && renders.isChildArray) {
+
       diff(renders, initialRenders[index], initialRenders[index - 1]);
 
       // If it is a normal array (list of DOM representations)
@@ -1114,10 +1117,10 @@ var addToList = function (renders, initialRenders, node) {
   // Collect IDs to compare them and figure out what items in list
   // already exists
   var rendersIds = renders.map(function (render) {
-    return render[0] instanceof Constructor ? render[0].$el.attr('id') : render[0].attr('id');
+    return render[0] instanceof Constructor ? render[0].props.id : render[0].attr('id');
   });
   var initialRendersIds = initialRenders.map(function (initialRender) {
-    return initialRender[0] instanceof Constructor ? initialRender[0].$el.attr('id') : initialRender[0].attr('id');
+    return initialRender[0] instanceof Constructor ? initialRender[0].props.id : initialRender[0].attr('id');
   });
 
   // Iterate over list of new IDs and check if it exists in
@@ -1137,7 +1140,7 @@ var addToList = function (renders, initialRenders, node) {
       // squeeze it into place
     } else if (initialRendersIds.indexOf(id) === -1) {
 
-      renders[index][0].insertBefore(compile(initialRenders[index]));
+      compile(renders[index]).insertBefore(initialRenders[index][0]);
       initialRenders.splice(index, 0, renders[index]);
 
     }
@@ -1199,11 +1202,11 @@ var Constructor = require('./../Constructor.js');
 var removeFromList = function (renders, initialRenders) {
 
   var rendersIds = renders.map(function (render) {
-    return render[0] instanceof Constructor ? render[0].$el.attr('id') : render[0].attr('id');
+    return render[0] instanceof Constructor ? render[0].props.id : render[0].attr('id');
   });
 
   var initialRendersIds = initialRenders.map(function (initialRender) {
-    return initialRender[0] instanceof Constructor ? initialRender[0].$el.attr('id') : initialRender[0].attr('id');
+    return initialRender[0] instanceof Constructor ? initialRender[0].props.id : initialRender[0].attr('id');
   });
 
   // Go through list backwards and remove item
@@ -1319,7 +1322,27 @@ if (typeof window !== 'undefined') {
     if (config().json) {
       dom.$.ajaxSetup({
         contentType: 'application/json',
-        dataType: 'json'
+        dataType: 'json',
+        processData: false,
+        beforeSend: function (jXhr, options) {
+
+          if (
+          // If it is POST, PUT or DELETE.
+          // GET converts data properties to a query
+            options.type !== 'GET' &&
+
+            // If you are passing data
+            options.data &&
+
+            // If it is not already a string
+            typeof options.data !== 'string'
+            ) {
+
+            // Stringify the data to JSON
+            options.data = JSON.stringify(options.data);
+          }
+
+        }
       });
     }
   });
@@ -1537,13 +1560,14 @@ exports.resolveRoute = function (path) {
 };
 
 exports.route = function (path, callback) {
-    if (arguments.length !== 2) {
-        throw new Error('You are passing the wrong arguments to createRoute()');
-    }
-    routes.push({
+    if (arguments.length === 1) {
+      exports.goTo(path);
+    } else {
+      routes.push({
         path: config().pushState ? config().baseUrl + path : path,
         callback: callback
-    });
+      });
+    }
 };
 
 exports.goTo = function (path) {

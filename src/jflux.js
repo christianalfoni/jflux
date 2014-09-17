@@ -38,7 +38,27 @@ if (typeof window !== 'undefined') {
     if (config().json) {
       dom.$.ajaxSetup({
         contentType: 'application/json',
-        dataType: 'json'
+        dataType: 'json',
+        processData: false,
+        beforeSend: function (jXhr, options) {
+
+          if (
+          // If it is POST, PUT or DELETE.
+          // GET converts data properties to a query
+            options.type !== 'GET' &&
+
+            // If you are passing data
+            options.data &&
+
+            // If it is not already a string
+            typeof options.data !== 'string'
+            ) {
+
+            // Stringify the data to JSON
+            options.data = JSON.stringify(options.data);
+          }
+
+        }
       });
     }
   });

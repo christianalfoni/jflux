@@ -46,13 +46,14 @@ exports.resolveRoute = function (path) {
 };
 
 exports.route = function (path, callback) {
-    if (arguments.length !== 2) {
-        throw new Error('You are passing the wrong arguments to createRoute()');
-    }
-    routes.push({
+    if (arguments.length === 1) {
+      exports.goTo(path);
+    } else {
+      routes.push({
         path: config().pushState ? config().baseUrl + path : path,
         callback: callback
-    });
+      });
+    }
 };
 
 exports.goTo = function (path) {

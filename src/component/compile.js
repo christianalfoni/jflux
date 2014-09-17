@@ -12,17 +12,20 @@ var compile = function (renders, componentsList) {
     // If the render is an array of children, append them
     // to the last child of the topNode
     if (Array.isArray(render) && render.isChildArray) {
+
       topNode.last().append(compile(render), componentsList);
 
       // If the render is a normal array, meaning it is an array of compiled
       // objects (Like using this.map to create a list in the component). Flatten
       // the array, compile it and append to the top node
     } else if (Array.isArray(render)) {
+
       topNode = topNode.add(compile(utils.flatten(render), componentsList));
 
       // If the render is a component, initialize it and append. If
       // this is during initializing add the component to a lookup list
     } else if (render instanceof Constructor) {
+
       topNode = topNode.add(render._init().$el);
 
       if (componentsList) {

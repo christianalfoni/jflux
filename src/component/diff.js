@@ -12,6 +12,7 @@ var diff = function (renders, initialRenders, node) {
 
     // If it is an array of children, diff that array
     if (Array.isArray(renders) && renders.isChildArray) {
+
       diff(renders, initialRenders[index], initialRenders[index - 1]);
 
       // If it is a normal array (list of DOM representations)

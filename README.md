@@ -13,6 +13,12 @@ Please read the following post if you are interested in the background of this p
 
 ### Change log
 
+**0.7.0**
+- Fixed jQuery AJAX json configuration
+- Added $$.route('/') to go to path manually
+- Optimized compiling
+- Fixed bug with handling components in lists
+
 **0.6.1**
 First change log tracking version
 

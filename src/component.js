@@ -197,7 +197,6 @@ Constructor.prototype = {
   },
   update: function () {
     this._render();
-    this._compile(this._renders);
     this._diff(this._renders, this._initialRenders);
   },
   render: function (compile) {
