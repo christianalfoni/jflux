@@ -18,7 +18,8 @@
     "watchify": "^1.0.2",
     "jasmine-node": "^1.14.5",
     "jsdom": "^1.0.0-pre.6",
-    "proxyquire": "^1.0.1"
+    "proxyquire": "^1.0.1",
+    "gulp-util": "^3.0.1"
   },
   "dependencies": {
     "jflux": "^0.6.1",

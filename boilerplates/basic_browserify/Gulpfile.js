@@ -7,6 +7,7 @@ var uglify = require('gulp-uglify');
 var streamify = require('gulp-streamify');
 var notify = require('gulp-notify');
 var shell = require('gulp-shell');
+var gutil = require('gulp-util');
 
 var appOptions = {
 
@@ -80,6 +81,7 @@ var browserifyTask = function (bundleOptions) {
 
     var start = Date.now();
     appBundler.bundle()
+      .on('error', gutil.log)
       .pipe(source(appOptions.entryFile))
       .pipe(gulpif(bundleOptions.uglify, streamify(uglify())))
       .pipe(gulp.dest(bundleOptions.dest))
@@ -97,6 +99,7 @@ var browserifyTask = function (bundleOptions) {
 
   // Run the vendor bundle when the default Gulp task starts
   vendorBundler.bundle()
+    .on('error', gutil.log)
     .pipe(source(appOptions.vendorsFile))
     .pipe(gulpif(bundleOptions.uglify, streamify(uglify())))
     .pipe(gulp.dest(bundleOptions.dest));
