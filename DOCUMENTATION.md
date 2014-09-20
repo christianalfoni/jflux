@@ -34,6 +34,7 @@ An easy to use unidirectional component based framework.
       - [$$-value](#components-attributes-value)
       - [$$-style](#components-attributes-style)
       - [$$-href](#components-attributes-href)
+      - [$$-show](#components-attributes-show)
     - [Composing](#components-composing)
     - [Listening to UI events](#components-listeningtouievents)
     - [Plugins](#components-plugins)
@@ -550,6 +551,20 @@ var MyComponent = $$.component(function () {
     this.url = 'http://www.jflux.io';
     return compile(
       '<a $$-href="url"/>'
+    );
+  };
+
+});
+```
+
+#####<a name="components-attributes-show">$$-show</a>
+```javascript
+var MyComponent = $$.component(function () {
+
+  this.render = function (compile) {
+    this.isReady = true;
+    return compile(
+      '<div $$-show="isReady"></div>'
     );
   };
 
