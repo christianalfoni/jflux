@@ -13,7 +13,7 @@ var compile = function (renders, componentsList) {
     // to the last child of the topNode
     if (Array.isArray(render) && render.isChildArray) {
 
-      topNode.last().append(compile(render), componentsList);
+      topNode.last().append(compile(render, componentsList));
 
       // If the render is a normal array, meaning it is an array of compiled
       // objects (Like using this.map to create a list in the component). Flatten

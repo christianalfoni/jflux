@@ -1,5 +1,4 @@
 var dom = require('./../dom.js');
-var compile = require('./compile.js');
 var Constructor = require('./Constructor.js');
 var addToList = require('./diff/addToList.js');
 var removeFromList = require('./diff/removeFromList.js');
@@ -30,7 +29,7 @@ var diff = function (renders, initialRenders, node) {
     } else if (renders instanceof Constructor) {
 
       // Grab properties
-      var oldProps = initialRenders[index]._props;
+      var oldProps = initialRenders[index].props;
       var newProps = renders.props;
 
       var propsChanged = !utils.deepCompare(oldProps, newProps); // TODO: Create hash instead

@@ -4,6 +4,7 @@ var attributeHasChanged = function (currentAttribute, newAttribute) {
 
 var diffAttributes = function (renders, initialRenders) {
 
+
   var currentAttributes = initialRenders.get(0).attributes;
   var newAttributes = renders.get(0).attributes;
 

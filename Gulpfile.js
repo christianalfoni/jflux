@@ -6,6 +6,7 @@ var gulpif = require('gulp-if');
 var uglify = require('gulp-uglify');
 var streamify = require('gulp-streamify');
 var notify = require('gulp-notify');
+var gutil = require('gulp-util');
 var package = require('./package.json');
 
 // The task that handles both development and deployment
@@ -27,6 +28,7 @@ var runBrowserifyTask = function (options) {
   var rebundle = function () {
     var start = Date.now();
     bundler.bundle()
+      .on('error', gutil.log)
       .pipe(source(options.name))
       .pipe(gulpif(options.uglify, streamify(uglify())))
       .pipe(gulp.dest(options.dest))

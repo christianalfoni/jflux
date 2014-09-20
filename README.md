@@ -13,6 +13,12 @@ Please read the following post if you are interested in the background of this p
 
 ### Change log
 
+**0.7.1**
+- Added $$-show
+- Added this.index to the context of the this.map callback
+- Fixed state listener leak
+- Fixed prop change check
+
 **0.7.0**
 - Fixed jQuery AJAX json configuration
 - Added $$.route('/') to go to path manually

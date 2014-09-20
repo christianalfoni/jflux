@@ -39,7 +39,7 @@ var run = function () {
 
   if (config().pushState) {
     window.onpopstate = function () {
-      router.resolveRoute(location.pathname);
+      router.goTo(location.pathname.substr(config().baseUrl.length));
     };
   } else {
     window.onhashchange = function () {

@@ -38,6 +38,14 @@ var converters = {
   '$$-href': function ($el, context) {
     var value = utils.grabContextValue(context, $el.attr('$$-href'));
     $el.attr('href', value);
+  },
+  '$$-show': function ($el, context) {
+    var show = utils.grabContextValue(context, $el.attr('$$-show'));
+    if (show) {
+      $el.show();
+    } else {
+      $el.hide();
+    }
   }
 };
 

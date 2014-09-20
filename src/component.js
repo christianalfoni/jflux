@@ -22,20 +22,23 @@ Constructor.prototype = {
 
     // Render the component and set it as the current render and the initial render
     this._renders = this._initialRenders = this.render(this._compiler.bind(this));
-    
+
     if (!this._renders) {
       throw new Error('You are not returning a template from the render function');
     }
 
     // Compile the renders, add bindings and listeners
     this.$el = compile(this._renders, this._components);
+
     this._addBindings();
     this._addListeners();
+    this._addStateListeners();
 
     // This event will be removed by jQuery when the main element is removed from
     // the DOM. That will trigger the _remove handler. Ref: $.event.special.destroy
     // above
     this.$el.on('destroy', this._remove.bind(this));
+
 
     return this;
 
@@ -57,8 +60,6 @@ Constructor.prototype = {
     return this;
 
   },
-
-  _compile: compile,
 
   // Runs the "render" method which compiles a DOM representation
   _render: function () {
@@ -107,15 +108,23 @@ Constructor.prototype = {
     var component = this;
     this._listeners.forEach(function (listener) {
 
-      var handler = function (event) {
-        listener.cb.call(component, dom.$(event.currentTarget), event);
-      };
-
       if (listener.target) {
-        component.$el.on(listener.type, listener.target, handler);
+        component.$el.on(listener.type, listener.target, function (event) {
+          listener.cb.call(component, dom.$(event.currentTarget), event);
+        });
       } else {
-        component.$el.on(listener.type, handler);
+        component.$el.on(listener.type, function (event) {
+          listener.cb.call(component, event);
+        });
       }
+
+    });
+  },
+
+  _addStateListeners: function () {
+    this._stateListeners.forEach(function (listener) {
+
+      listener.target.on(listener.type, listener.cb);
 
     });
   },
@@ -197,7 +206,10 @@ Constructor.prototype = {
   },
   update: function () {
     this._render();
-    this._diff(this._renders, this._initialRenders);
+    try {
+      this._diff(this._renders, this._initialRenders);
+    } catch (e) {}
+
   },
   render: function (compile) {
     return compile(
@@ -216,7 +228,6 @@ Constructor.prototype = {
       cb = target.bind(this);
       target = type;
       type = 'update';
-      target.on(type, cb);
       this._stateListeners.push({
         type: type,
         target: target,
@@ -268,10 +279,11 @@ Constructor.prototype = {
   // making it possible to use $$-attributes and this.someProp
   map: function (array, cb) {
     var component = this;
-    return array.map(function (item) {
+    return array.map(function (item, index) {
       var context = {
         item: item,
-        props: component.props
+        props: component.props,
+        index: index
       };
       return cb.call(context, component._compiler.bind(context));
     });
@@ -281,7 +293,7 @@ Constructor.prototype = {
 module.exports = function (constr) {
   return function (props) {
     var component = new Constructor(props);
-    constr.call(component, component._compiler.bind(component));
+    constr.call(component);
     component._constr = constr;
     return component;
   }
