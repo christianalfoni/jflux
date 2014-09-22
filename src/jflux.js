@@ -1,6 +1,5 @@
 var dom = require('./dom.js');
 var render = require('./jflux/render.js');
-var generateId = require('./jflux/generateId.js');
 var config = require('./config.js');
 var path = require('./jflux/path.js');
 var component = require('./component.js');
@@ -13,7 +12,6 @@ var test = require('./test.js');
 var exports = {
     run: run,
     render: render,
-    generateId: generateId,
     config: config,
     path: path,
     component: component,

@@ -21,9 +21,9 @@ var diff = function (renders, initialRenders, node) {
         addToList(renders, initialRenders[index], node);
       } else if (renders.length < initialRenders[index].length) {
         removeFromList(renders, initialRenders[index]);
-      } else {
-        diff(renders, initialRenders[index]);
       }
+
+      diff(renders, initialRenders[index]);
 
       // If it is a component
     } else if (renders instanceof Constructor) {

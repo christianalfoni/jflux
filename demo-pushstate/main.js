@@ -1,33 +1,25 @@
-$$.config({autoRoute: false});
+$$.config({
+  baseUrl: '/demo-pushstate',
+  pushState: true
+});
 
-var BindedComponent = $$.component(function () {
+var Home = $$.component(function () {
 
-  this.newTodo = {
-    title: '',
-    completed: false
-  };
-
-  this.bind(this.newTodo, 'title', ':text');
-  this.bind(this.newTodo, 'completed', ':checkbox');
   this.render = function (compile) {
     return compile(
-      '<div>',
-        '<form>',
-          '<input type="text" name="title"/>',
-          '<div>',
-            this.newTodo.title,
-          '</div>',
-          '<input type="checkbox"/>',
-          '<div>',
-            'completed: ' + this.newTodo.completed,
-          '</div>',
-        '</form>',
-      '</div>'
+      '<p>',
+        this.props.content,
+      '</p>',
+      '<a href="/slide2">Slide2</a>'
     );
   };
 
 });
 
-$(function () {
-  $$.render(BindedComponent(), 'body');
+$$.route('/', function () {
+  $$.render(Home({content: 'slide1'}), 'body');
+});
+
+$$.route('/slide2', function () {
+  $$.render(Home({content: 'slide2'}), 'body');
 });

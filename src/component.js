@@ -110,11 +110,23 @@ Constructor.prototype = {
 
       if (listener.target) {
         component.$el.on(listener.type, listener.target, function (event) {
-          listener.cb.call(component, dom.$(event.currentTarget), event);
+          var $target = dom.$(event.currentTarget);
+          var data = dom.$.data($target[0], 'data');
+          if (data) {
+            listener.cb.call(component, data, $target, event);
+          } else {
+            listener.cb.call(component, $target, event);
+          }
         });
       } else {
         component.$el.on(listener.type, function (event) {
-          listener.cb.call(component, event);
+          var data = dom.$.data(component.$el[0], 'data');
+          if (data) {
+            listener.cb.call(component, data, event);
+          } else {
+            listener.cb.call(component, event);
+          }
+
         });
       }
 
@@ -198,6 +210,16 @@ Constructor.prototype = {
 
     }
 
+    // If we are compiling a mapped item, take the index
+    // along in case no ID is set
+    if (typeof this.index === 'number') {
+      if (initLevel[0] instanceof dom.$ && !initLevel[0].attr('id')) {
+        initLevel[0]._jfluxIndex = this.index;
+      } else if (initLevel[0] instanceof Constructor && !initLevel[0].props.id) {
+        initLevel[0]._jfluxIndex = this.index;
+      }
+    }
+
     return initLevel;
   },
   _diff: diff,
@@ -206,10 +228,7 @@ Constructor.prototype = {
   },
   update: function () {
     this._render();
-    try {
-      this._diff(this._renders, this._initialRenders);
-    } catch (e) {}
-
+    this._diff(this._renders, this._initialRenders);
   },
   render: function (compile) {
     return compile(
@@ -225,9 +244,9 @@ Constructor.prototype = {
     // If it is an object, this is a state listener
     if (typeof type === 'object') {
 
-      cb = target.bind(this);
-      target = type;
-      type = 'update';
+      cb = arguments.length === 3 ? cb.bind(this) : target.bind(this);
+      target = arguments.length === 3 ? target : type;
+      type = arguments.length === 3 ? type : 'update';
       this._stateListeners.push({
         type: type,
         target: target,

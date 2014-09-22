@@ -6,10 +6,10 @@ var addToList = function (renders, initialRenders, node) {
   // Collect IDs to compare them and figure out what items in list
   // already exists
   var rendersIds = renders.map(function (render) {
-    return render[0] instanceof Constructor ? render[0].props.id : render[0].attr('id');
+    return render[0] instanceof Constructor ? render[0].props.id || render[0]._jfluxIndex : render[0].attr('id') || render[0]._jfluxIndex;
   });
   var initialRendersIds = initialRenders.map(function (initialRender) {
-    return initialRender[0] instanceof Constructor ? initialRender[0].props.id : initialRender[0].attr('id');
+    return initialRender[0] instanceof Constructor ? initialRender[0].props.id || initialRender[0]._jfluxIndex : initialRender[0].attr('id') || initialRender[0]._jfluxIndex;
   });
 
   // Iterate over list of new IDs and check if it exists in

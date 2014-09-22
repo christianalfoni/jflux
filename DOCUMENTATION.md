@@ -11,7 +11,6 @@ An easy to use unidirectional component based framework.
     - [$$.route](#jflux-route)
     - [$$.render](#jflux-render)
     - [$$.run](#jflux-run)
-    - [$$.generateId](#jflux-generateid)
     - [$$.path](#jflux-path)
   - [Actions](#actions)
     - [Create actions](#actions-createactions)
@@ -21,6 +20,7 @@ An easy to use unidirectional component based framework.
     - [State mutators](#state-statemutators)
     - [Listening to actions](#state-listeningtoactions)
     - [Exports](#state-exports)
+    - [Emit](#state-emit)
   - [Components](#components)
     - [Create a component](#components-createcomponent)
     - [Compile](#components-compile)
@@ -35,6 +35,7 @@ An easy to use unidirectional component based framework.
       - [$$-style](#components-attributes-style)
       - [$$-href](#components-attributes-href)
       - [$$-show](#components-attributes-show)
+      - [$$-data](#components-attributes-data)
     - [Composing](#components-composing)
     - [Listening to UI events](#components-listeningtouievents)
     - [Plugins](#components-plugins)
@@ -152,14 +153,6 @@ $$.run();
 
 2. Triggers the initial route based on current url
 
-####<a name="jflux-generateid">$$.generateId([string])</a>
-Lists in templates require IDs to handle changes in that list. If you do not have an
-ID, you can create one with jFlux. This could be handy when waiting for the ID from the backend or you are creating a list that for some reason does not have IDs, but still needs to be manipulated with sorting, filtering etc. An ID is always a string.
-```javascript
-var id = $$.generateId(); // f.ex. "0"
-var todoId = $$.generateId('temp_todo'); // f.ex. "temp_todo_0"
-```
-
 ####<a name="jflux-path">$$.path()</a>
 Returns the current route path.
 ```javascript
@@ -170,7 +163,7 @@ $$.path() // f.ex. "/posts/1"
 Actions defines what state changes your application is able to do. Reading the list of actions
 is actually reading the functionality of your application.
 
-####<a name="jflux-createactions">Create actions</a>
+####<a name="actions-createactions">Create actions</a>
 ```javascript
 // Returns a function that will trigger the action when called
 var addTodo = $$.action();
@@ -189,7 +182,7 @@ actions.removeTodo(todo);
 actions.editTodo(todo, 'newTitle');
 ```
 
-####<a name="jflux-listeningtoactions">Listening to actions</a>
+####<a name="actions-listeningtoactions">Listening to actions</a>
 Only states created will be able to listen to actions, do state changes and
 flush updates to listening components.
 ```javascript
@@ -200,7 +193,6 @@ var AppState = $$.state(function () {
 
   // A state mutator
   this.addTodo = function (todo) {
-    todo.id = $$.generateId();
     todos.push(todo);
     this.flush();
   };
@@ -223,7 +215,7 @@ var AppState = $$.state(function () {
 State objects holds state of your application. You may only have on "AppState" object or
 multiple state objects that will handle different types of state in your application.
 
-####<a name="jflux-creatingstates">Creating states</a>
+####<a name="state-creatingstates">Creating states</a>
 Your state is contained inside one or multiple state objects. The states are
 normally defined by declaring a variable.
 ```javascript
@@ -241,7 +233,7 @@ var AppState = $$.state(function () {
 });
 ```
 
-####<a name="jflux-statemutators">State mutators</a>
+####<a name="state-statemutators">State mutators</a>
 State mutators are normally triggered by an action listener and will change
 declared variables.
 ```javascript
@@ -257,7 +249,6 @@ var AppState = $$.state(function () {
   // a state. Then it flushes to inform
   // listening components about the update
   this.addTodo = function (todo) {
-    todo.id = $$.generateId();
     todos.push(todo);
     this.flush();
   };
@@ -271,7 +262,33 @@ var AppState = $$.state(function () {
 });
 ```
 
-####<a name="jflux-listeningtoactions">Listening to actions</a>
+####<a name="state-flush">Flush</a>
+Run the flush method to notify components about an update.
+```javascript
+var AppState = $$.state(function () {
+
+  var todos = [];
+  var filter = {
+    completed: true,
+    active: true
+  };
+
+  this.addTodo = function (todo) {
+    todos.push(todo);
+    this.flush(); // Notify all listening components about an update
+  };
+
+
+  this.filter = function (filterOptions) {
+    filter = filterOptions;
+    this.flush(); // Notify all listening components about an update
+  };
+
+
+});
+```
+
+####<a name="state-listeningtoactions">Listening to actions</a>
 A state object in jFlux listens to actions and trigger their
 state mutators.
 ```javascript
@@ -284,7 +301,6 @@ var AppState = $$.state(function () {
   };
 
   this.addTodo = function (todo) {
-    todo.id = $$.generateId();
     todos.push(todo);
     this.flush();
   };
@@ -302,7 +318,7 @@ var AppState = $$.state(function () {
 });
 ```
 
-####<a name="jflux-exports">Exports</a>
+####<a name="state-exports">Exports</a>
 Components will need to extract the states from the state object. This is done
 by defining export methods. These methods should only be "getters", not "setters".
 State change is only done by actions.
@@ -316,7 +332,6 @@ var AppState = $$.state(function () {
   };
 
   this.addTodo = function (todo) {
-    todo.id = $$.generateId();
     todos.push(todo);
     this.flush();
   };
@@ -337,6 +352,30 @@ var AppState = $$.state(function () {
       return todos.filter(function (todo) {
         return (filter.completed && todo.completed) || (filter.active && !todo.completed);
       });
+    }
+  };
+
+});
+```
+
+####<a name="state-emit">Emit</a>
+There might be situations where you want to notify components about a specific state change. That is useful for state
+ updates that happens very often. Look at [Listening to state changes](#components-listeningtostatechanges), for more
+  information.
+```javascript
+var AppState = $$.state(function () {
+
+  var duration = 0;
+
+  var state = this;
+  setInterval(function () {
+    duration += 100;
+    state.emit('duration:update');
+  }, 100);
+
+  this.exports = {
+    getDuration: function () {
+      return duration;
     }
   };
 
@@ -571,6 +610,27 @@ var MyComponent = $$.component(function () {
 });
 ```
 
+#####<a name="components-attributes-data">$$-data</a>
+```javascript
+var MyComponent = $$.component(function () {
+
+  this.onClick = function (data) {
+    console.log(data.foo); // "bar"
+  };
+
+  this.listenTo('click', this.onClick);
+  this.render = function (compile) {
+    this.someData = {
+      foo: 'bar'
+    };
+    return compile(
+      '<div $$-data="someData"></div>'
+    );
+  };
+
+});
+```
+
 ####<a name="components-composing">Composing</a>
 A component DOM representation can take other components as arguments.
 
@@ -705,6 +765,22 @@ var MyComponent = $$.component(function () {
     return compile(
       '<h1>',
         AppState.getTitle(),
+      '</h1>'
+    );
+  };
+});
+```
+
+You can also listen to specific events emitted from a state. This is useful when you need to notify a component very
+often and do not want to flush out to the whole application:
+
+```javascript
+var MyComponent = $$.component(function () {
+  this.listenTo('duration:update', AppState, this.update);
+  this.render = function (compile) {
+    return compile(
+      '<h1>',
+        AppState.getDuration(),
       '</h1>'
     );
   };

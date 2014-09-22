@@ -46,6 +46,10 @@ var converters = {
     } else {
       $el.hide();
     }
+  },
+  '$$-data': function ($el, context) {
+    var data = utils.grabContextValue(context, $el.data('$$-show'));
+    $.data($el, 'data', data);
   }
 };
 

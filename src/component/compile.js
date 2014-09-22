@@ -7,7 +7,9 @@ var Constructor = require('./Constructor.js');
 var compile = function (renders, componentsList) {
 
   var topNode = dom.$();
+
   renders.forEach(function (render) {
+
 
     // If the render is an array of children, append them
     // to the last child of the topNode
@@ -34,10 +36,12 @@ var compile = function (renders, componentsList) {
 
       // If it is just a jQuery object, append it
     } else {
+
       topNode = topNode.add(render);
     }
 
   });
+
   return topNode;
 };
 

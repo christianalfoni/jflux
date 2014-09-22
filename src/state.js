@@ -6,14 +6,14 @@ var utils = require('./utils.js');
  *  to actions and emit events themselves
  */
 var state = function (constr) {
-    var base = function () {
-        this._exports = Object.create(EventEmitter.prototype);
-        this.exports = {};
-    };
-    base.prototype = state.prototype;
-    var newState = new base();
-    constr.call(newState);
-    return utils.merge(newState.exports, newState._exports);
+  var base = function () {
+    this._exports = Object.create(EventEmitter.prototype);
+    this.exports = {};
+  };
+  base.prototype = state.prototype;
+  var newState = new base();
+  constr.call(newState);
+  return utils.merge(newState.exports, newState._exports);
 };
 
 /*
@@ -22,17 +22,20 @@ var state = function (constr) {
  */
 state.prototype = {
 
-    /*
-     * listenTo() binds the passed function to
-     * the state object itself
-     */
-    listenTo: function (action, cb) {
-        this._listeners = this._listeners || [];
-        action.on('trigger', cb.bind(this));
-    },
-    flush: function () {
-        this._exports.emit('update');
-    }
+  /*
+   * listenTo() binds the passed function to
+   * the state object itself
+   */
+  listenTo: function (action, cb) {
+    this._listeners = this._listeners || [];
+    action.on('trigger', cb.bind(this));
+  },
+  flush: function () {
+    this._exports.emit('update');
+  },
+  emit: function () {
+    this._exports.emit.apply(this._exports, arguments);
+  }
 };
 
 module.exports = state;

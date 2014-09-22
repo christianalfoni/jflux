@@ -71,7 +71,7 @@ var List = $$.component(function () {
 
   this.compileNames = function (compile) {
     return compile(
-      '<li $$-id="item._id">',
+      '<li>',
         this.item.firstName + ' ' + this.item.lastName,
       '</li>'
     );

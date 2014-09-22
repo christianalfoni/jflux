@@ -13,6 +13,13 @@ Please read the following post if you are interested in the background of this p
 
 ### Change log
 
+**0.7.2**
+- Fixed list diff bug
+- Added $$-data to pass objects to listeners
+- Trigger events from states with this.emit
+- Listen to specific events from states
+- Automatically add index as ID lookup, when no ID defined in map
+
 **0.7.1**
 - Added $$-show
 - Added this.index to the context of the this.map callback

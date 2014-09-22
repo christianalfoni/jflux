@@ -695,11 +695,23 @@ Constructor.prototype = {
 
       if (listener.target) {
         component.$el.on(listener.type, listener.target, function (event) {
-          listener.cb.call(component, dom.$(event.currentTarget), event);
+          var $target = dom.$(event.currentTarget);
+          var data = dom.$.data($target[0], 'data');
+          if (data) {
+            listener.cb.call(component, data, $target, event);
+          } else {
+            listener.cb.call(component, $target, event);
+          }
         });
       } else {
         component.$el.on(listener.type, function (event) {
-          listener.cb.call(component, event);
+          var data = dom.$.data(component.$el[0], 'data');
+          if (data) {
+            listener.cb.call(component, data, event);
+          } else {
+            listener.cb.call(component, event);
+          }
+
         });
       }
 
@@ -783,6 +795,16 @@ Constructor.prototype = {
 
     }
 
+    // If we are compiling a mapped item, take the index
+    // along in case no ID is set
+    if (typeof this.index === 'number') {
+      if (initLevel[0] instanceof dom.$ && !initLevel[0].attr('id')) {
+        initLevel[0]._jfluxIndex = this.index;
+      } else if (initLevel[0] instanceof Constructor && !initLevel[0].props.id) {
+        initLevel[0]._jfluxIndex = this.index;
+      }
+    }
+
     return initLevel;
   },
   _diff: diff,
@@ -791,10 +813,7 @@ Constructor.prototype = {
   },
   update: function () {
     this._render();
-    try {
-      this._diff(this._renders, this._initialRenders);
-    } catch (e) {}
-
+    this._diff(this._renders, this._initialRenders);
   },
   render: function (compile) {
     return compile(
@@ -810,9 +829,9 @@ Constructor.prototype = {
     // If it is an object, this is a state listener
     if (typeof type === 'object') {
 
-      cb = target.bind(this);
-      target = type;
-      type = 'update';
+      cb = arguments.length === 3 ? cb.bind(this) : target.bind(this);
+      target = arguments.length === 3 ? target : type;
+      type = arguments.length === 3 ? type : 'update';
       this._stateListeners.push({
         type: type,
         target: target,
@@ -907,7 +926,9 @@ var Constructor = require('./Constructor.js');
 var compile = function (renders, componentsList) {
 
   var topNode = dom.$();
+
   renders.forEach(function (render) {
+
 
     // If the render is an array of children, append them
     // to the last child of the topNode
@@ -934,10 +955,12 @@ var compile = function (renders, componentsList) {
 
       // If it is just a jQuery object, append it
     } else {
+
       topNode = topNode.add(render);
     }
 
   });
+
   return topNode;
 };
 
@@ -991,6 +1014,10 @@ var converters = {
     } else {
       $el.hide();
     }
+  },
+  '$$-data': function ($el, context) {
+    var data = utils.grabContextValue(context, $el.data('$$-show'));
+    $.data($el, 'data', data);
   }
 };
 
@@ -1094,9 +1121,9 @@ var diff = function (renders, initialRenders, node) {
         addToList(renders, initialRenders[index], node);
       } else if (renders.length < initialRenders[index].length) {
         removeFromList(renders, initialRenders[index]);
-      } else {
-        diff(renders, initialRenders[index]);
       }
+
+      diff(renders, initialRenders[index]);
 
       // If it is a component
     } else if (renders instanceof Constructor) {
@@ -1136,10 +1163,10 @@ var addToList = function (renders, initialRenders, node) {
   // Collect IDs to compare them and figure out what items in list
   // already exists
   var rendersIds = renders.map(function (render) {
-    return render[0] instanceof Constructor ? render[0].props.id : render[0].attr('id');
+    return render[0] instanceof Constructor ? render[0].props.id || render[0]._jfluxIndex : render[0].attr('id') || render[0]._jfluxIndex;
   });
   var initialRendersIds = initialRenders.map(function (initialRender) {
-    return initialRender[0] instanceof Constructor ? initialRender[0].props.id : initialRender[0].attr('id');
+    return initialRender[0] instanceof Constructor ? initialRender[0].props.id || initialRender[0]._jfluxIndex : initialRender[0].attr('id') || initialRender[0]._jfluxIndex;
   });
 
   // Iterate over list of new IDs and check if it exists in
@@ -1222,11 +1249,11 @@ var Constructor = require('./../Constructor.js');
 var removeFromList = function (renders, initialRenders) {
 
   var rendersIds = renders.map(function (render) {
-    return render[0] instanceof Constructor ? render[0].props.id : render[0].attr('id');
+    return render[0] instanceof Constructor ? render[0].props.id || render[0]._jfluxIndex : render[0].attr('id') || render[0]._jfluxIndex;
   });
 
   var initialRendersIds = initialRenders.map(function (initialRender) {
-    return initialRender[0] instanceof Constructor ? initialRender[0].props.id : initialRender[0].attr('id');
+    return initialRender[0] instanceof Constructor ? initialRender[0].props.id || initialRender[0]._jfluxIndex : initialRender[0].attr('id') || initialRender[0]._jfluxIndex;
   });
 
   // Go through list backwards and remove item
@@ -1304,7 +1331,6 @@ module.exports = {
 (function (global){
 var dom = require('./dom.js');
 var render = require('./jflux/render.js');
-var generateId = require('./jflux/generateId.js');
 var config = require('./config.js');
 var path = require('./jflux/path.js');
 var component = require('./component.js');
@@ -1317,7 +1343,6 @@ var test = require('./test.js');
 var exports = {
     run: run,
     render: render,
-    generateId: generateId,
     config: config,
     path: path,
     component: component,
@@ -1377,25 +1402,7 @@ if (!global.exports && !global.module && (!global.define || !global.define.amd))
 
 module.exports = exports;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./action.js":"/Users/christianalfoni/Documents/dev/jflux/src/action.js","./component.js":"/Users/christianalfoni/Documents/dev/jflux/src/component.js","./config.js":"/Users/christianalfoni/Documents/dev/jflux/src/config.js","./dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./jflux/generateId.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/generateId.js","./jflux/path.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/path.js","./jflux/render.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/render.js","./jflux/run.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/run.js","./router.js":"/Users/christianalfoni/Documents/dev/jflux/src/router.js","./state.js":"/Users/christianalfoni/Documents/dev/jflux/src/state.js","./test.js":"/Users/christianalfoni/Documents/dev/jflux/src/test.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/jflux/generateId.js":[function(require,module,exports){
-/*
- * GENERATEID
- * ====================================================================================
- * Creates IDs to use in lists when waiting for updates ID from backend or creating
- * mutable lists that does not have IDs.
- * ====================================================================================
- */
-
-var generateId = function (identifier) {
-    return typeof identifier === 'string' ?
-      identifier + '_' + generateId._currentId++ :
-      '' + generateId._currentId++;
-};
-
-generateId._currentId = 0;
-
-module.exports = generateId;
-},{}],"/Users/christianalfoni/Documents/dev/jflux/src/jflux/path.js":[function(require,module,exports){
+},{"./action.js":"/Users/christianalfoni/Documents/dev/jflux/src/action.js","./component.js":"/Users/christianalfoni/Documents/dev/jflux/src/component.js","./config.js":"/Users/christianalfoni/Documents/dev/jflux/src/config.js","./dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./jflux/path.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/path.js","./jflux/render.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/render.js","./jflux/run.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/run.js","./router.js":"/Users/christianalfoni/Documents/dev/jflux/src/router.js","./state.js":"/Users/christianalfoni/Documents/dev/jflux/src/state.js","./test.js":"/Users/christianalfoni/Documents/dev/jflux/src/test.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/jflux/path.js":[function(require,module,exports){
 /*
  * PATH
  * ====================================================================================
@@ -1615,14 +1622,14 @@ var utils = require('./utils.js');
  *  to actions and emit events themselves
  */
 var state = function (constr) {
-    var base = function () {
-        this._exports = Object.create(EventEmitter.prototype);
-        this.exports = {};
-    };
-    base.prototype = state.prototype;
-    var newState = new base();
-    constr.call(newState);
-    return utils.merge(newState.exports, newState._exports);
+  var base = function () {
+    this._exports = Object.create(EventEmitter.prototype);
+    this.exports = {};
+  };
+  base.prototype = state.prototype;
+  var newState = new base();
+  constr.call(newState);
+  return utils.merge(newState.exports, newState._exports);
 };
 
 /*
@@ -1631,17 +1638,20 @@ var state = function (constr) {
  */
 state.prototype = {
 
-    /*
-     * listenTo() binds the passed function to
-     * the state object itself
-     */
-    listenTo: function (action, cb) {
-        this._listeners = this._listeners || [];
-        action.on('trigger', cb.bind(this));
-    },
-    flush: function () {
-        this._exports.emit('update');
-    }
+  /*
+   * listenTo() binds the passed function to
+   * the state object itself
+   */
+  listenTo: function (action, cb) {
+    this._listeners = this._listeners || [];
+    action.on('trigger', cb.bind(this));
+  },
+  flush: function () {
+    this._exports.emit('update');
+  },
+  emit: function () {
+    this._exports.emit.apply(this._exports, arguments);
+  }
 };
 
 module.exports = state;
