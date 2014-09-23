@@ -13,6 +13,9 @@ Please read the following post if you are interested in the background of this p
 
 ### Change log
 
+**0.7.5**
+- Small bug fix
+
 **0.7.4**
 - Small bug with $$-data... time to get some tests soon ;-)
 - Bug with state listener
