@@ -724,6 +724,7 @@ Constructor.prototype = {
   _addStateListeners: function () {
     this._stateListeners.forEach(function (listener) {
 
+      console.log(listener.type);
       listener.target.on(listener.type, listener.cb);
 
     });
@@ -829,8 +830,8 @@ Constructor.prototype = {
       throw new Error('Do not run listenTo() in your render callback');
     }
 
-    // If it is an object, this is a state listener
-    if (typeof type === 'object') {
+    // If first or second argument is an object, it is a state listener
+    if (typeof type === 'object' || typeof target === 'object') {
 
       cb = arguments.length === 3 ? cb.bind(this) : target.bind(this);
       target = arguments.length === 3 ? target : type;
