@@ -6,6 +6,7 @@
  * to set the correct HTML attribute
  * ====================================================================================
  */
+var dom = require('./../dom.js');
 var utils = require('./../utils.js');
 
 var converters = {
@@ -47,9 +48,9 @@ var converters = {
       $el.hide();
     }
   },
-  '$$-data': function ($el, context) {
-    var data = utils.grabContextValue(context, $el.data('$$-data'));
-    $.data($el, 'data', data);
+  '$$-data': function ($el) {
+    var data = $el.data('$$-data');
+    dom.$.data($el, 'data', data);
   }
 };
 

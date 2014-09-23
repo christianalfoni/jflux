@@ -139,7 +139,6 @@ Constructor.prototype = {
   _addStateListeners: function () {
     this._stateListeners.forEach(function (listener) {
 
-      console.log(listener.type);
       listener.target.on(listener.type, listener.cb);
 
     });

@@ -724,7 +724,6 @@ Constructor.prototype = {
   _addStateListeners: function () {
     this._stateListeners.forEach(function (listener) {
 
-      console.log(listener.type);
       listener.target.on(listener.type, listener.cb);
 
     });
@@ -978,6 +977,7 @@ module.exports = compile;
  * to set the correct HTML attribute
  * ====================================================================================
  */
+var dom = require('./../dom.js');
 var utils = require('./../utils.js');
 
 var converters = {
@@ -1019,9 +1019,9 @@ var converters = {
       $el.hide();
     }
   },
-  '$$-data': function ($el, context) {
-    var data = utils.grabContextValue(context, $el.data('$$-data'));
-    $.data($el, 'data', data);
+  '$$-data': function ($el) {
+    var data = $el.data('$$-data');
+    dom.$.data($el, 'data', data);
   }
 };
 
@@ -1039,7 +1039,7 @@ var convertAttributes = function ($el, context) {
 };
 
 module.exports = convertAttributes;
-},{"./../utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/createDomNodeRepresentation.js":[function(require,module,exports){
+},{"./../dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./../utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/createDomNodeRepresentation.js":[function(require,module,exports){
 /*
  * CREATEDOMNODEREPRESENTATION
  * ====================================================================================
