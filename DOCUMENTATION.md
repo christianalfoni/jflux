@@ -42,6 +42,7 @@ An easy to use unidirectional component based framework.
     - [Updates](#components-updates)
     - [Listening to state changes](#components-listeningtostatechanges)
     - [Binding to inputs](#components-bindingtoinputs)
+    - [After render](#components-afterrender)
   - [Router](#router)
       - [Create a route](#router-createroute)
       - [Trigger the router](#router-triggertherouter)
@@ -814,6 +815,23 @@ var MyComponent = $$.component(function () {
 });
 ```
 The button in this example will only be enabled if there is both a title and a description.
+
+####<a name="components-afterrender">After render</a>
+You might need to manipulate the DOM content after a render. F.ex. using plugins that attach to specific DOM nodes.
+You can use **afterRender()** for that.
+
+```javascript
+var MyComponent = $$.component(function () {
+  this.afterRender = function () {
+    MyExternalLib.attachTo(this.$el[0]);
+  };
+  this.render = function (compile) {
+    return compile(
+      '<div></div>'
+    );
+  };
+});
+```
 
 ##<a name="router">Router</a>
 jFlux supports both hash and popstate routing. jFlux knows about its rendered components and lets you very easily render components to any section of the screen, much like nested routes. It also supports dynamic links and redirects.

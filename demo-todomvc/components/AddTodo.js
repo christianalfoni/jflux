@@ -2,7 +2,7 @@ define(['jflux', 'actions'], function ($$, actions) {
 
   return $$.component(function () {
 
-    this.addTodo = function ($el, event) {
+    this.addTodo = function (event) {
       event.preventDefault();
       var $input = this.$('input');
       actions.addTodo($input.val());

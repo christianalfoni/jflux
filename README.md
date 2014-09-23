@@ -13,6 +13,11 @@ Please read the following post if you are interested in the background of this p
 
 ### Change log
 
+**0.7.3**
+- Added afterRender method to components
+- Fixed utils bug
+- Updated demos
+
 **0.7.2**
 - Fixed list diff bug
 - Added $$-data to pass objects to listeners

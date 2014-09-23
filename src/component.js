@@ -39,6 +39,9 @@ Constructor.prototype = {
     // above
     this.$el.on('destroy', this._remove.bind(this));
 
+    if (this.afterRender) {
+      this.afterRender();
+    }
 
     return this;
 

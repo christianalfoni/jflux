@@ -8,7 +8,7 @@ define(['jflux', 'AppState', 'actions', 'components/Todo'], function ($$, AppSta
 
     this.compileTodos = function (compile) {
       return compile(
-        Todo({id: this.item.id, todo: this.item})
+        Todo({todo: this.item})
       );
     };
 

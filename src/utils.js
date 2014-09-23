@@ -96,7 +96,7 @@ exports.deepCompare = function (a, b) {
 
   var compare = function (valueA, valueB) {
     if (Array.isArray(valueA) || exports.isObject(valueA)) {
-      var isTheSame = exports.deepComparison(valueA, valueB);
+      var isTheSame = exports.deepCompare(valueA, valueB);
       if (!isTheSame) {
         return false;
       }

@@ -8,37 +8,25 @@ define(['jflux', 'actions'], function ($$, actions) {
       active: true
     };
 
-    var getTodo = function (id) {
-      for (var x = 0; x < todos.length; x++) {
-        if (todos[x].id == id) {
-          return todos[x];
-        }
-      }
-    };
-
     this.addTodo = function (title) {
       todos.push({
         title: title,
-        completed: false,
-        id: $$.generateId()
+        completed: false
       });
       this.flush();
     };
 
     this.removeTodo = function (todo) {
-      var todo = getTodo(todo.id);
       todos.splice(todos.indexOf(todo), 1);
       this.flush();
     };
 
     this.toggleTodo = function (todo, completed) {
-      var todo = getTodo(todo.id);
       todo.completed = completed;
       this.flush();
     };
 
     this.updateTodo = function (todo, title) {
-      var todo = getTodo(todo.id);
       todo.title = title;
       this.flush();
     };
