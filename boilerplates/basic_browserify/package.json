@@ -22,7 +22,7 @@
     "gulp-util": "^3.0.1"
   },
   "dependencies": {
-    "jflux": "^0.7.3",
+    "jflux": "^0.7.4",
     "jquery": "^2.1.1"
   }
 }

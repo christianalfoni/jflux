@@ -1,6 +1,6 @@
 {
   "name": "jflux",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "An easy to use unidirectional component based framework",
   "main": "src/jflux.js",
   "scripts": {

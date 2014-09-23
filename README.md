@@ -13,6 +13,10 @@ Please read the following post if you are interested in the background of this p
 
 ### Change log
 
+**0.7.4**
+- Small bug with $$-data... time to get some tests soon ;-)
+- Bug with state listener
+
 **0.7.3**
 - Added afterRender method to components
 - Fixed utils bug
