@@ -698,7 +698,7 @@ Constructor.prototype = {
       if (listener.target) {
         component.$el.on(listener.type, listener.target, function (event) {
           var $target = dom.$(event.currentTarget);
-          var data = $target.data();
+          var data = $target.data('data');
           if (data) {
             listener.cb.call(component, data, $target, event);
           } else {
@@ -1019,7 +1019,7 @@ var converters = {
     }
   },
   '$$-data': function ($el) {
-    $el.data(utils.grabContextValue(context, $el.attr('$$-data')));
+    $el.data('data', utils.grabContextValue(context, $el.attr('$$-data')));
   }
 };
 
