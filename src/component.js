@@ -113,8 +113,8 @@ Constructor.prototype = {
       if (listener.target) {
         component.$el.on(listener.type, listener.target, function (event) {
           var $target = dom.$(event.currentTarget);
-          var data = $target.data();
-          if (Object.keys(data).length) {
+          var data = $target.data('data');
+          if (data) {
             listener.cb.call(component, data, $target, event);
           } else {
             listener.cb.call(component, $target, event);
