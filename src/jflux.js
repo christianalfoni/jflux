@@ -41,6 +41,8 @@ if (typeof window !== 'undefined') {
         beforeSend: function (jXhr, options) {
 
           if (
+
+            options.contentType === 'application/json' &&
           // If it is POST, PUT or DELETE.
           // GET converts data properties to a query
             options.type !== 'GET' &&

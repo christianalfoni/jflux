@@ -25,7 +25,7 @@ exports.flatten = function (array) {
 exports.getFromListByProp = function (list, prop, item) {
   for (var x = 0; x < list.length; x++) {
     if (list[x][prop] === item) {
-      return list[x][prop];
+      return list[x];
     }
   }
 };

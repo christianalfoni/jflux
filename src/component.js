@@ -34,11 +34,6 @@ Constructor.prototype = {
     this._addListeners();
     this._addStateListeners();
 
-    // This event will be removed by jQuery when the main element is removed from
-    // the DOM. That will trigger the _remove handler. Ref: $.event.special.destroy
-    // above
-    this.$el.on('destroy', this._remove.bind(this));
-
     if (this.afterRender) {
       this.afterRender();
     }
@@ -59,6 +54,10 @@ Constructor.prototype = {
     });
 
     this.$el.remove();
+
+    if (this.teardown) {
+      this.teardown();
+    }
 
     return this;
 
@@ -114,7 +113,7 @@ Constructor.prototype = {
       if (listener.target) {
         component.$el.on(listener.type, listener.target, function (event) {
           var $target = dom.$(event.currentTarget);
-          var data = dom.$.data($target[0], 'data');
+          var data = $target.data();
           if (data) {
             listener.cb.call(component, data, $target, event);
           } else {

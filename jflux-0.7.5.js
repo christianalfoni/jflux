@@ -619,11 +619,6 @@ Constructor.prototype = {
     this._addListeners();
     this._addStateListeners();
 
-    // This event will be removed by jQuery when the main element is removed from
-    // the DOM. That will trigger the _remove handler. Ref: $.event.special.destroy
-    // above
-    this.$el.on('destroy', this._remove.bind(this));
-
     if (this.afterRender) {
       this.afterRender();
     }
@@ -644,6 +639,10 @@ Constructor.prototype = {
     });
 
     this.$el.remove();
+
+    if (this.teardown) {
+      this.teardown();
+    }
 
     return this;
 
@@ -699,7 +698,7 @@ Constructor.prototype = {
       if (listener.target) {
         component.$el.on(listener.type, listener.target, function (event) {
           var $target = dom.$(event.currentTarget);
-          var data = dom.$.data($target[0], 'data');
+          var data = $target.data();
           if (data) {
             listener.cb.call(component, data, $target, event);
           } else {
@@ -1020,8 +1019,7 @@ var converters = {
     }
   },
   '$$-data': function ($el) {
-    var data = $el.data('$$-data');
-    dom.$.data($el, 'data', data);
+    $el.data(utils.grabContextValue(context, $el.attr('$$-data')));
   }
 };
 
@@ -1376,6 +1374,8 @@ if (typeof window !== 'undefined') {
         beforeSend: function (jXhr, options) {
 
           if (
+
+            options.contentType === 'application/json' &&
           // If it is POST, PUT or DELETE.
           // GET converts data properties to a query
             options.type !== 'GET' &&
@@ -1444,36 +1444,27 @@ var utils = require('./../utils.js');
 // Components rendered to the DOM will be stored in this array, as a lookup
 var _renderedComponents = [];
 
-// Register an event that triggers when component nodes are removed
-if (dom.$.event) {
-  dom.$.event.special.destroy = {
-    remove: function (listener) {
-
-      // The "destroy" callback (handler) removes the component and returns it
-      var component = listener.handler();
-      utils.removeFromListByProp(_renderedComponents, 'component', component);
-
-    }
-  };
-}
-
 var render = function (component, target) {
 
-  var existingComponent = utils.getFromListByProp(_renderedComponents, 'target', target);
+  var existingRender = utils.getFromListByProp(_renderedComponents, 'target', target);
 
   // If there is an existing component of same type and the props has changed,
   // update existing component
-  if (existingComponent &&
-      existingComponent._constr === component._constr
-      && !utils.deepCompare(existingComponent.props, component.props)) {
+  if (existingRender &&
+    existingRender.component._constr === component._constr
+      && !utils.deepCompare(existingRender.component.props, component.props)) {
 
-    existingComponent.props = component.props;
-    existingComponent.update();
+    existingRender.component.props = component.props;
+    existingRender.component.update();
 
     // If no existing component or the component type has changed,
     // initialize a new component
-  } else if (!existingComponent || existingComponent._constr !== component._constr) {
+  } else if (!existingRender || existingRender.component._constr !== component._constr) {
 
+    if (existingRender) {
+      existingRender.component._remove();
+      _renderedComponents.splice(_renderedComponents.indexOf(existingRender), 1);
+    }
     component._init();
     dom.$(target).html(component.$el);
     _renderedComponents.push({
@@ -1736,7 +1727,7 @@ exports.flatten = function (array) {
 exports.getFromListByProp = function (list, prop, item) {
   for (var x = 0; x < list.length; x++) {
     if (list[x][prop] === item) {
-      return list[x][prop];
+      return list[x];
     }
   }
 };

@@ -49,8 +49,7 @@ var converters = {
     }
   },
   '$$-data': function ($el) {
-    var data = $el.data('$$-data');
-    dom.$.data($el, 'data', data);
+    $el.data(utils.grabContextValue(context, $el.attr('$$-data')));
   }
 };
 
