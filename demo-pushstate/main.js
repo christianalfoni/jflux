@@ -1,6 +1,5 @@
 $$.config({
   baseUrl: '/demo-pushstate',
-  pushState: true
 });
 
 var Home = $$.component(function () {
@@ -17,6 +16,7 @@ var Home = $$.component(function () {
 });
 
 $$.route('/', function () {
+  console.log('rendering again!');
   $$.render(Home({content: 'slide1'}), 'body');
 });
 

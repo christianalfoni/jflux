@@ -13,6 +13,12 @@ Please read the following post if you are interested in the background of this p
 
 ### Change log
 
+**.0.7.6**
+- Fixed replacing components and cleaning up
+- Added check for content-type JSON before stringifying data to server
+- Added teardown method that runs when component is removed
+- Fixed bug with $$-data
+
 **0.7.5**
 - Small bug fix
 
