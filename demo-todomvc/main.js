@@ -13,27 +13,27 @@ require(['jflux', 'components/Todomvc', 'actions'], function ($$, Todomvc, actio
   });
 
   $$.route('/', function () {
-    $$.render(Todomvc(), 'body');
     actions.filter({
       completed: true,
       active: true
     });
+    $$.render(Todomvc(), 'body');
   });
 
   $$.route('/active', function () {
-    $$.render(Todomvc(), 'body');
     actions.filter({
       completed: false,
       active: true
     });
+    $$.render(Todomvc(), 'body');
   });
 
   $$.route('/completed', function () {
-    $$.render(Todomvc(), 'body');
     actions.filter({
       completed: true,
       active: false
     });
+    $$.render(Todomvc(), 'body');
   });
 
   $$.run();

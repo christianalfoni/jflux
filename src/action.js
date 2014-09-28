@@ -7,6 +7,7 @@
  */
 
 var EventEmitter = require('./EventEmitter.js');
+var error = require('./error.js');
 
 var createActionFunction = function () {
 
@@ -48,7 +49,12 @@ var action = function () {
     return createActionFunction();
   }
 
-  throw new Error('action() takes no arguments or an array of strings');
+  error.create({
+    source: arguments[0],
+    message: 'Could not create action(s)',
+    support: 'Pass no arguments or an array of strings',
+    url: 'https://github.com/christianalfoni/jflux/blob/master/DOCUMENTATION.md#jflux-action'
+  });
 
 };
 

@@ -536,6 +536,7 @@ module.exports = (function () {
  */
 
 var EventEmitter = require('./EventEmitter.js');
+var error = require('./error.js');
 
 var createActionFunction = function () {
 
@@ -577,12 +578,17 @@ var action = function () {
     return createActionFunction();
   }
 
-  throw new Error('action() takes no arguments or an array of strings');
+  error.create({
+    source: arguments[0],
+    message: 'Could not create action(s)',
+    support: 'Pass no arguments or an array of strings',
+    url: 'https://github.com/christianalfoni/jflux/blob/master/DOCUMENTATION.md#jflux-action'
+  });
 
 };
 
 module.exports = action;
-},{"./EventEmitter.js":"/Users/christianalfoni/Documents/dev/jflux/src/EventEmitter.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component.js":[function(require,module,exports){
+},{"./EventEmitter.js":"/Users/christianalfoni/Documents/dev/jflux/src/EventEmitter.js","./error.js":"/Users/christianalfoni/Documents/dev/jflux/src/error.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component.js":[function(require,module,exports){
 /*
  * COMPONENT
  * ====================================================================================
@@ -1329,7 +1335,27 @@ module.exports = {
   }
 };
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"jquery":"jquery"}],"/Users/christianalfoni/Documents/dev/jflux/src/jflux.js":[function(require,module,exports){
+},{"jquery":"jquery"}],"/Users/christianalfoni/Documents/dev/jflux/src/error.js":[function(require,module,exports){
+module.exports = {
+  create: function (options) {
+    var errorString = 'jFlux error: ';
+    var keys = Object.keys(options);
+    if (keys.indexOf('source') >= 0) {
+      errorString += (typeof options.source === 'object' && options.source !== null ? JSON.stringify(options.source) : options.source) + '. ';
+    }
+    if (keys.indexOf('message') >= 0) {
+      errorString += options.message + '. ';
+    }
+    if (keys.indexOf('support') >= 0) {
+      errorString += options.support + '. ';
+    }
+    if (keys.indexOf('url') >= 0) {
+      errorString += 'More documentation at: ' + options.url + '.';
+    }
+    throw new Error(errorString);
+  }
+};
+},{}],"/Users/christianalfoni/Documents/dev/jflux/src/jflux.js":[function(require,module,exports){
 (function (global){
 var dom = require('./dom.js');
 var render = require('./jflux/render.js');
@@ -1670,24 +1696,38 @@ module.exports = function (file, stubs, test) {
     }
   };
 
-  if (arguments.length === 2) {
-    test = stubs;
-    stubs = null;
+  // Just running a test, not loading a module at all
+  if (arguments.length === 1 && typeof file === 'function') {
+    test = file;
+  } else {
+
+    if (arguments.length === 2) {
+      test = stubs;
+      stubs = null;
+    }
+
+    file = process.cwd() + '/' + file;
+
+    var module = getModule(file, stubs);
   }
 
-  file = process.cwd() + '/' + file;
-
-  var module = getModule(file, stubs);
-
-  // If test has no arguments, do no fire up JSDOM
-  if (test.length < 2) {
+  // If test has no module or dependency overrides, set up
+  // an environment and run the test. Used for internal testing
+  if (arguments.length === 1) {
+    env(html, function (errors, window) {
+      dom.setWindow(window);
+      try {
+        test(dom.$);
+      } catch (e) {
+        console.log(e);
+      }
+      window.close();
+    });
+  } else if (arguments.length > 1 && test.length < 2) {
     test(module);
   } else {
     env(html, function (errors, window) {
-
       dom.setWindow(window);
-
-
       try {
         test(module, dom.$);
       } catch (e) {

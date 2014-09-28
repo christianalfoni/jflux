@@ -8,6 +8,7 @@ var streamify = require('gulp-streamify');
 var notify = require('gulp-notify');
 var gutil = require('gulp-util');
 var package = require('./package.json');
+var shell = require('gulp-shell');
 
 // The task that handles both development and deployment
 var runBrowserifyTask = function (options) {
@@ -87,3 +88,7 @@ gulp.task('deploy', function () {
   });
 
 });
+
+gulp.task('test', shell.task([
+    './node_modules/.bin/jasmine-node ./specs --autotest --watch ./src --color'
+]));
