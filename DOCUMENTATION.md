@@ -387,7 +387,7 @@ var AppState = $$.state(function () {
 All your UI is constructed with components. They are composable, meaning that components
 can live inside other components.
 
-####<a name="components-creatingacomponent">Creating a component</a>
+####<a name="components-createacomponent">Create a component</a>
 The minimum boilerplate for a component is to define a render callback that
 returns a DOM representation with a top node. The default render method compiles a single `div`.
 ```javascript

@@ -11,6 +11,7 @@ var createDomNodeRepresentation = require('./component/createDomNodeRepresentati
 var diff = require('./component/diff.js');
 var compile = require('./component/compile.js');
 var Constructor = require('./component/Constructor.js');
+var error = require('./error.js');
 
 var exports = {};
 
@@ -24,7 +25,12 @@ Constructor.prototype = {
     this._renders = this._initialRenders = this.render(this._compiler.bind(this));
 
     if (!this._renders) {
-      throw new Error('You are not returning a template from the render function');
+      error.create({
+        source: this._renders,
+        message: 'Missing compiled DOM representation',
+        support: 'You have to return a compile call from the render method',
+        url: 'https://github.com/christianalfoni/jflux/blob/master/DOCUMENTATION.md#components-createacomponent'
+      });
     }
 
     // Compile the renders, add bindings and listeners
