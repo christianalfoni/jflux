@@ -3,6 +3,8 @@
 An easy to use unidirectional component based framework.
 
 WebSite: [www.jflux.io](http://www.jflux.io)
+Documentation: [DOCUMENTATION.md](https://github.com/christianalfoni/jflux/blob/master/DOCUMENTATION.md)
+Testing: [TESTING.md](https://github.com/christianalfoni/jflux/blob/master/TESTING.md)
 
 ### Testing the examples
 Clone the repo and run `python -m SimpleHTTPServer 3000` in your terminal at the root of this repo, then access f.ex.
