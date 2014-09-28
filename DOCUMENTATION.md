@@ -22,7 +22,7 @@ An easy to use unidirectional component based framework.
     - [Exports](#state-exports)
     - [Emit](#state-emit)
   - [Components](#components)
-    - [Create a component](#components-createcomponent)
+    - [Create a component](#components-createacomponent)
     - [Compile](#components-compile)
     - [Properties](#components-properties)
     - [Map](#components-map)
