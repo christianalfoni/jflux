@@ -602,6 +602,7 @@ var createDomNodeRepresentation = require('./component/createDomNodeRepresentati
 var diff = require('./component/diff.js');
 var compile = require('./component/compile.js');
 var Constructor = require('./component/Constructor.js');
+var error = require('./error.js');
 
 var exports = {};
 
@@ -611,19 +612,29 @@ Constructor.prototype = {
   // Runs when the component is added to the DOM by $$.render
   _init: function () {
 
+    if (this.init) {
+      this.init();
+    }
+
     // Render the component and set it as the current render and the initial render
     this._renders = this._initialRenders = this.render(this._compiler.bind(this));
 
     if (!this._renders) {
-      throw new Error('You are not returning a template from the render function');
+      error.create({
+        source: this._renders,
+        message: 'Missing compiled DOM representation',
+        support: 'You have to return a compile call from the render method',
+        url: 'https://github.com/christianalfoni/jflux/blob/master/DOCUMENTATION.md#components-createacomponent'
+      });
     }
 
     // Compile the renders, add bindings and listeners
-    this.$el = compile(this._renders, this._components);
+    this.$el = compile(this._renders);
 
     this._addBindings();
     this._addListeners();
-    this._addStateListeners();
+
+    this.$el.on('destroy', this._remove.bind(this));
 
     if (this.afterRender) {
       this.afterRender();
@@ -636,15 +647,9 @@ Constructor.prototype = {
   // Cleans up the listeners and removes the component from the DOM
   _remove: function () {
 
-    this._stateListeners.forEach(function (listener) {
+    this._listeners.forEach(function (listener) {
       listener.target.removeListener(listener.type, listener.cb);
     });
-
-    this._components.forEach(function (component) {
-      component._remove();
-    });
-
-    this.$el.remove();
 
     if (this.teardown) {
       this.teardown();
@@ -669,26 +674,36 @@ Constructor.prototype = {
   _addBindings: function () {
 
     var component = this;
-    this._bindings.forEach(function (binding) {
+    Object.keys(this.bindings).forEach(function (binding) {
 
-      var $el = binding.selector ? component.$(binding.selector) : component.$el;
+
+      var $el = binding ? component.$(binding) : component.$el;
+
       if ($el.is(':checkbox')) {
 
         $el.on('change', function () {
-          binding.obj[binding.key] = $el.prop('checked');
+          var grabObject = utils.createGrabObject(component, component.bindings[binding]);
+          grabObject.context[grabObject.prop] = $el.is(':checked');
           component.update();
         });
 
       } else {
 
-        $el.on('keydown', function () {
+        $el.on('keydown', function (event) {
 
-          // Use setTimeout to grab the value after keydown has run.
-          // Gives the best experience
-          setTimeout(function () {
-            binding.obj[binding.key] = $el.val();
-            component.update();
-          }, 0);
+          // Do not update on ENTER due to form submit
+          if (event.keyCode !== 13) {
+
+            // Use setTimeout to grab the value after keydown has run.
+            // Gives the best experience
+            setTimeout(function () {
+              var grabObject = utils.createGrabObject(component, component.bindings[binding]);
+              grabObject.context[grabObject.prop] = $el.val();
+              component.update();
+            }, 0);
+
+          }
+
         });
 
       }
@@ -699,56 +714,38 @@ Constructor.prototype = {
   // Adds interaction listeners, like "click" etc.
   _addListeners: function () {
     var component = this;
-    this._listeners.forEach(function (listener) {
+    Object.keys(this.events).forEach(function (listenerDefinition) {
+
+      var listener = utils.extractTypeAndTarget(listenerDefinition);
+
+      if (!component[component.events[listenerDefinition]]) {
+        error.create({
+          source: component[component.events[listenerDefinition]],
+          message: 'There is no method called ' + component.events[listenerDefinition],
+          support: 'Make sure that you add methods described in events on your component',
+          url: '' // TODO: Add url
+        })
+      }
 
       if (listener.target) {
         component.$el.on(listener.type, listener.target, function (event) {
+
           var $target = dom.$(event.currentTarget);
-          var data = $target.data('data');
-          if (data) {
-            listener.cb.call(component, data, $target, event);
-          } else {
-            listener.cb.call(component, $target, event);
-          }
+          event.data = $target.data('data');
+          component[component.events[listenerDefinition]](event);
+
         });
       } else {
+
         component.$el.on(listener.type, function (event) {
-          var data = dom.$.data(component.$el[0], 'data');
-          if (data) {
-            listener.cb.call(component, data, event);
-          } else {
-            listener.cb.call(component, event);
-          }
+
+          event.data = component.$el.data('data');
+          component[component.events[listenerDefinition]](event);
 
         });
       }
 
     });
-  },
-
-  _addStateListeners: function () {
-    this._stateListeners.forEach(function (listener) {
-
-      listener.target.on(listener.type, listener.cb);
-
-    });
-  },
-
-  // Triggers plugins on elements
-  _addPlugins: function () {
-
-    this._plugins.forEach(function (plugin) {
-
-      if (plugin.target) {
-        this.$(plugin.target)[plugin.name](plugin.options);
-      } else if (Array.isArray(plugin.options)) {
-        this.$el[plugin.name].apply(this.$el, plugin.options);
-      } else {
-        this.$el[plugin.name](plugin.options);
-      }
-
-    }, this);
-
   },
 
   /*
@@ -828,62 +825,25 @@ Constructor.prototype = {
       '<div></div>'
     );
   },
-  listenTo: function (type, target, cb) {
+  listenTo: function (target, type, cb) {
 
     if (this._isRendering) {
-      throw new Error('Do not run listenTo() in your render callback');
-    }
-
-    // If first or second argument is an object, it is a state listener
-    if (typeof type === 'object' || typeof target === 'object') {
-
-      cb = arguments.length === 3 ? cb.bind(this) : target.bind(this);
-      target = arguments.length === 3 ? target : type;
-      type = arguments.length === 3 ? type : 'update';
-      this._stateListeners.push({
-        type: type,
-        target: target,
-        cb: cb
+      error.create({
+        source: null,
+        message: 'You are running listenTo in your render',
+        support: 'The listenTo method is to be run in the init method',
+        url: ''
       });
-
-    } else {
-
-      this._listeners.push({
-        type: type,
-        target: typeof target === 'function' ? null : target,
-        cb: typeof cb === 'function' ? cb : target
-      });
-
-    }
-  },
-  plugin: function () {
-
-    if (this._isRendering) {
-      throw new Error('Do not run plugin() in your render callback');
     }
 
-    var name = arguments[0];
-    var target = typeof arguments[1] === 'string' ? arguments[1] : null;
-    var options = arguments.length === 3 ? arguments[2] : arguments[1];
-
-    this._plugins.push({
-      name: name,
+    cb = cb.bind(this);
+    this._listeners.push({
       target: target,
-      options: options
+      type: type,
+      cb: cb
     });
 
-  },
-  bind: function (obj, key, selector) {
-
-    if (this._isRendering) {
-      throw new Error('Do not run plugin() in your render callback');
-    }
-
-    this._bindings.push({
-      obj: obj,
-      key: key,
-      selector: selector
-    });
+    target.on(type, cb);
 
   },
 
@@ -902,24 +862,24 @@ Constructor.prototype = {
   }
 };
 
-module.exports = function (constr) {
+module.exports = function (description) {
   return function (props) {
-    var component = new Constructor(props);
-    constr.call(component);
-    component._constr = constr;
+    var base = new Constructor(props);
+    var component = utils.mergeTo(base, description);
+    component._description = description;
     return component;
   }
 };
-},{"./component/Constructor.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/Constructor.js","./component/compile.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/compile.js","./component/createDomNodeRepresentation.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/createDomNodeRepresentation.js","./component/diff.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/diff.js","./dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/Constructor.js":[function(require,module,exports){
+},{"./component/Constructor.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/Constructor.js","./component/compile.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/compile.js","./component/createDomNodeRepresentation.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/createDomNodeRepresentation.js","./component/diff.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/diff.js","./dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./error.js":"/Users/christianalfoni/Documents/dev/jflux/src/error.js","./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/Constructor.js":[function(require,module,exports){
 function Component (props) {
+
+  this.events = {};
+  this.bindings = {};
   this._initialRenders = [];
   this._isRendering = false;
   this._bindings = [];
-  this._components = [];
   this._renders = [];
   this._listeners = [];
-  this._plugins = [];
-  this._stateListeners = []; // State changes
   this.props = props || {};
 }
 
@@ -931,7 +891,7 @@ var dom = require('./../dom.js');
 var utils = require('./../utils.js');
 var Constructor = require('./Constructor.js');
 
-var compile = function (renders, componentsList) {
+var compile = function (renders) {
 
   var topNode = dom.$();
 
@@ -942,24 +902,20 @@ var compile = function (renders, componentsList) {
     // to the last child of the topNode
     if (Array.isArray(render) && render.isChildArray) {
 
-      topNode.last().append(compile(render, componentsList));
+      topNode.last().append(compile(render));
 
       // If the render is a normal array, meaning it is an array of compiled
       // objects (Like using this.map to create a list in the component). Flatten
       // the array, compile it and append to the top node
     } else if (Array.isArray(render)) {
 
-      topNode = topNode.add(compile(utils.flatten(render), componentsList));
+      topNode = topNode.add(compile(utils.flatten(render)));
 
       // If the render is a component, initialize it and append. If
       // this is during initializing add the component to a lookup list
     } else if (render instanceof Constructor) {
 
       topNode = topNode.add(render._init().$el);
-
-      if (componentsList) {
-        componentsList.push(render);
-      }
 
       // If it is just a jQuery object, append it
     } else {
@@ -1024,7 +980,7 @@ var converters = {
       $el.hide();
     }
   },
-  '$$-data': function ($el) {
+  '$$-data': function ($el, context) {
     $el.data('data', utils.grabContextValue(context, $el.attr('$$-data')));
   }
 };
@@ -1152,9 +1108,7 @@ var diff = function (renders, initialRenders, node) {
       initialRenders[index].get(0).nodeValue = renders.text();
 
     } else if (renders instanceof dom.$) {
-
       diffAttributes(renders, initialRenders[index]);
-
     }
 
   });
@@ -1203,55 +1157,37 @@ var addToList = function (renders, initialRenders, node) {
 
 module.exports = addToList;
 },{"./../Constructor.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/Constructor.js","./../compile.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/compile.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/diff/diffAttributes.js":[function(require,module,exports){
-var attributeHasChanged = function (currentAttribute, newAttribute) {
-  return newAttribute.name && (!currentAttribute || newAttribute.value !== currentAttribute.value);
-};
+var dom = require('../../dom.js');
+
+var attributes = [
+  'style',
+  'className',
+  'disabled',
+  'checked',
+  'id',
+  'value'
+];
 
 var diffAttributes = function (renders, initialRenders) {
 
+  var currentEl = initialRenders.get(0);
+  var newEl = renders.get(0);
 
-  var currentAttributes = initialRenders.get(0).attributes;
-  var newAttributes = renders.get(0).attributes;
-
-  // Check if number of attributes is less or the same. If so
-  // the .attr() method will either add or change value
-  var attributesCountChanged = newAttributes && Object.keys(currentAttributes).length <= Object.keys(newAttributes).length;
-  if (attributesCountChanged) {
-
-    for (var attr in newAttributes) {
-
-      if (newAttributes.hasOwnProperty(attr) && attributeHasChanged(currentAttributes[attr], newAttributes[attr])) {
-
-        if (newAttributes[attr].name === 'checked') { // TODO: Verify this!
-          initialRenders.get(0).checked = true;
-        }
-
-        initialRenders.attr(newAttributes[attr].name, newAttributes[attr].value || true);
-
-      }
-
+  attributes.forEach(function (attribute) {
+    if (!currentEl[attribute] && !newEl[attribute]) {
+      return;
     }
-
-  } else if (currentAttributes) {
-
-    for (var attr in currentAttributes) {
-
-      if (currentAttributes.hasOwnProperty(attr) && currentAttributes[attr].name && !newAttributes[attr]) {
-
-        initialRenders.removeAttr(currentAttributes[attr].name);
-
-      } else if (newAttributes.hasOwnProperty(attr) && attributeHasChanged(currentAttributes[attr], newAttributes[attr])) {
-
-        initialRenders.attr(newAttributes[attr].name, newAttributes[attr].value || true);
-
-      }
+    if (attribute === 'style' && initialRenders.attr('style') !== renders.attr('style')) {
+      return initialRenders.attr('style', renders.attr('style'));
+    } else if (attribute !== 'style' && currentEl[attribute] !== newEl[attribute]) {
+      return currentEl[attribute] = newEl[attribute];
     }
-  }
+  });
 
 };
 
 module.exports = diffAttributes;
-},{}],"/Users/christianalfoni/Documents/dev/jflux/src/component/diff/removeFromList.js":[function(require,module,exports){
+},{"../../dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/diff/removeFromList.js":[function(require,module,exports){
 var Constructor = require('./../Constructor.js');
 
 var removeFromList = function (renders, initialRenders) {
@@ -1269,8 +1205,7 @@ var removeFromList = function (renders, initialRenders) {
     var id = initialRendersIds[x];
     if (rendersIds.indexOf(id) === -1) {
 
-      // Use _remove if it is a component or remove if it is a jQuery object
-      initialRenders[x][0] instanceof Constructor ? initialRenders[x][0]._remove() : initialRenders[x][0].remove();
+      initialRenders[x][0] instanceof Constructor ? initialRenders[x][0].$el.remove() : initialRenders[x][0].remove();
       initialRenders.splice(x, 1);
 
     }
@@ -1309,7 +1244,7 @@ var config = function (options) {
     if (!options) {
         return _options;
     } else {
-        utils.merge(options, _options);
+        utils.mergeTo(_options, options);
     }
 };
 
@@ -1365,8 +1300,9 @@ var component = require('./component.js');
 var router = require('./router.js');
 var run = require('./jflux/run.js');
 var action = require('./action.js');
-var state = require('./state.js');
+var store = require('./store.js');
 var test = require('./test.js');
+var utils = require('./utils.js');
 
 var exports = {
     run: run,
@@ -1376,8 +1312,9 @@ var exports = {
     component: component,
     route: router.route,
     action: action,
-    state: state,
+    store: store,
     test: test,
+    immutable: utils.deepClone,
     fakeState: function (exports) {
       return this.state(function () {
         this.exports = exports;
@@ -1432,7 +1369,7 @@ if (!global.exports && !global.module && (!global.define || !global.define.amd))
 
 module.exports = exports;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./action.js":"/Users/christianalfoni/Documents/dev/jflux/src/action.js","./component.js":"/Users/christianalfoni/Documents/dev/jflux/src/component.js","./config.js":"/Users/christianalfoni/Documents/dev/jflux/src/config.js","./dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./jflux/path.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/path.js","./jflux/render.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/render.js","./jflux/run.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/run.js","./router.js":"/Users/christianalfoni/Documents/dev/jflux/src/router.js","./state.js":"/Users/christianalfoni/Documents/dev/jflux/src/state.js","./test.js":"/Users/christianalfoni/Documents/dev/jflux/src/test.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/jflux/path.js":[function(require,module,exports){
+},{"./action.js":"/Users/christianalfoni/Documents/dev/jflux/src/action.js","./component.js":"/Users/christianalfoni/Documents/dev/jflux/src/component.js","./config.js":"/Users/christianalfoni/Documents/dev/jflux/src/config.js","./dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./jflux/path.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/path.js","./jflux/render.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/render.js","./jflux/run.js":"/Users/christianalfoni/Documents/dev/jflux/src/jflux/run.js","./router.js":"/Users/christianalfoni/Documents/dev/jflux/src/router.js","./store.js":"/Users/christianalfoni/Documents/dev/jflux/src/store.js","./test.js":"/Users/christianalfoni/Documents/dev/jflux/src/test.js","./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/jflux/path.js":[function(require,module,exports){
 /*
  * PATH
  * ====================================================================================
@@ -1470,6 +1407,22 @@ var utils = require('./../utils.js');
 // Components rendered to the DOM will be stored in this array, as a lookup
 var _renderedComponents = [];
 
+// Add a special event that will run the handler when removed
+// It is used to remove component when main element is removed from DOM
+dom.$(function () {
+  if (dom.$.event.special) {
+    dom.$.event.special.destroy = {
+      remove: function (data) {
+        var component = data.handler();
+        var existingRender = utils.getFromListByProp(_renderedComponents, 'component', component);
+        if (existingRender) {
+          _renderedComponents.splice(_renderedComponents.indexOf(existingRender), 1);
+        }
+      }
+    };
+  }
+});
+
 var render = function (component, target) {
 
   var existingRender = utils.getFromListByProp(_renderedComponents, 'target', target);
@@ -1477,7 +1430,7 @@ var render = function (component, target) {
   // If there is an existing component of same type and the props has changed,
   // update existing component
   if (existingRender &&
-    existingRender.component._constr === component._constr
+    existingRender.component._description === component._description
       && !utils.deepCompare(existingRender.component.props, component.props)) {
 
     existingRender.component.props = component.props;
@@ -1485,14 +1438,11 @@ var render = function (component, target) {
 
     // If no existing component or the component type has changed,
     // initialize a new component
-  } else if (!existingRender || existingRender.component._constr !== component._constr) {
+  } else if (!existingRender || existingRender.component._description !== component._description) {
 
-    if (existingRender) {
-      existingRender.component._remove();
-      _renderedComponents.splice(_renderedComponents.indexOf(existingRender), 1);
-    }
     component._init();
     dom.$(target).html(component.$el);
+
     _renderedComponents.push({
       component: component,
       target: target
@@ -1634,30 +1584,38 @@ exports.deferTo = function (path) {
 };
 
 module.exports = exports;
-},{"./config.js":"/Users/christianalfoni/Documents/dev/jflux/src/config.js","./dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/state.js":[function(require,module,exports){
+},{"./config.js":"/Users/christianalfoni/Documents/dev/jflux/src/config.js","./dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/store.js":[function(require,module,exports){
 var EventEmitter = require('./EventEmitter.js');
 var utils = require('./utils.js');
+var error = require('./error.js');
 /*
  *  State() takes a name and a constructor
  *  and creates a state object that can listen
  *  to actions and emit events themselves
  */
-var state = function (constr) {
-  var base = function () {
-    this._exports = Object.create(EventEmitter.prototype);
-    this.exports = {};
-  };
-  base.prototype = state.prototype;
-  var newState = new base();
-  constr.call(newState);
-  return utils.merge(newState.exports, newState._exports);
+var store = function (constr) {
+  var exportsPrototype = Object.create(EventEmitter.prototype);
+  var base = function () {};
+  base.prototype = store.prototype;
+  var newStore = new base();
+  var exports = constr.call(newStore);
+  if (!exports) {
+    error.create({
+      source: exports,
+      message: 'Missing exported methods from store',
+      support: 'Be sure to return an object with GETTER methods from your store',
+      url: '' // TODO: Add store url
+    })
+  }
+  newStore._exports = utils.mergeTo(exportsPrototype, exports);
+  return newStore._exports;
 };
 
 /*
  *  Set EventEmitter as prototype so that components
  *  can listen to the state
  */
-state.prototype = {
+store.prototype = {
 
   /*
    * listenTo() binds the passed function to
@@ -1667,17 +1625,14 @@ state.prototype = {
     this._listeners = this._listeners || [];
     action.on('trigger', cb.bind(this));
   },
-  flush: function () {
-    this._exports.emit('update');
-  },
   emit: function () {
     this._exports.emit.apply(this._exports, arguments);
   }
 };
 
-module.exports = state;
+module.exports = store;
 
-},{"./EventEmitter.js":"/Users/christianalfoni/Documents/dev/jflux/src/EventEmitter.js","./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/test.js":[function(require,module,exports){
+},{"./EventEmitter.js":"/Users/christianalfoni/Documents/dev/jflux/src/EventEmitter.js","./error.js":"/Users/christianalfoni/Documents/dev/jflux/src/error.js","./utils.js":"/Users/christianalfoni/Documents/dev/jflux/src/utils.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/test.js":[function(require,module,exports){
 (function (process){
 var dom = require('./dom.js');
 
@@ -1740,8 +1695,23 @@ module.exports = function (file, stubs, test) {
 };
 }).call(this,require('_process'))
 },{"./dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","_process":"/Users/christianalfoni/Documents/dev/jflux/node_modules/browserify/node_modules/process/browser.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/utils.js":[function(require,module,exports){
+var dom = require('./dom.js');
+
 var exports = {};
 
+exports.deepClone = function (object) {
+
+  if (Array.isArray(object)) {
+    return object.map(function (item) {
+      return exports.deepClone(item);
+    });
+  } else if (exports.isObject(object)) {
+    return dom.$.extend(true, {}, object);
+  } else {
+    return object;
+  }
+
+};
 
 exports.isParam = function (part) {
   var match = part.match(/^\{.*\}$/);
@@ -1821,12 +1791,15 @@ exports.compileRoute = function (path, params) {
   return path;
 };
 
-exports.merge = function (source, target) {
-  for (var prop in source) {
-    if (source.hasOwnProperty(prop)) {
-      target[prop] = source[prop];
+exports.mergeTo = function (target) {
+  var sources = Array.prototype.splice.call(arguments, 1, arguments.length - 1);
+  sources.forEach(function (source) {
+    for (var prop in source) {
+      if (source.hasOwnProperty(prop)) {
+        target[prop] = source[prop];
+      }
     }
-  }
+  });
   return target;
 };
 
@@ -1886,6 +1859,18 @@ exports.grabContextValue = function (context, grabber) {
   return value;
 };
 
+exports.createGrabObject = function (context, grabString) {
+  var grabs = grabString.split('.');
+  var prop = grabs.pop();
+  grabs.forEach(function (grab) {
+    context = context[grab];
+  });
+  return {
+    prop: prop,
+    context: context
+  }
+};
+
 exports.createClassString = function (obj) {
   var classes = [];
   for (var prop in obj) {
@@ -1894,7 +1879,8 @@ exports.createClassString = function (obj) {
     }
   }
   return classes.join(' ');
-}
+};
+
 exports.createStyleString = function (obj) {
   var classes = [];
   for (var prop in obj) {
@@ -1903,8 +1889,16 @@ exports.createStyleString = function (obj) {
     }
   }
   return classes.join(';');
-}
+};
+
+exports.extractTypeAndTarget = function (event) {
+  var eventArray = event.split(' ');
+  return {
+    type: eventArray[0],
+    target: eventArray[1]
+  };
+};
 
 module.exports = exports;
-},{}]},{},["/Users/christianalfoni/Documents/dev/jflux/src/jflux.js"])("/Users/christianalfoni/Documents/dev/jflux/src/jflux.js")
+},{"./dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js"}]},{},["/Users/christianalfoni/Documents/dev/jflux/src/jflux.js"])("/Users/christianalfoni/Documents/dev/jflux/src/jflux.js")
 });

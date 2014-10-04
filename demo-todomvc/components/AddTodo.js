@@ -1,22 +1,29 @@
 define(['jflux', 'actions'], function ($$, actions) {
 
-  return $$.component(function () {
+  return $$.component({
 
-    this.addTodo = function (event) {
+    events: {
+      'submit': 'addTodo'
+    },
+    bindings: {
+      ':text': 'title'
+    },
+    title: '',
+
+    addTodo: function (event) {
       event.preventDefault();
-      var $input = this.$('input');
-      actions.addTodo($input.val());
-      $input.val('');
-    }; 
+      actions.addTodo(this.title);
+      this.title = '';
+      this.update();
+    },
 
-    this.listenTo('submit', this.addTodo);
-    this.render = function (compile) {
+    render: function (compile) {
       return compile(
         '<form id="todo-form">',
-          '<input id="new-todo" autofocus autocomplete="false"/>',
+          '<input id="new-todo" autofocus autocomplete="false" $$-value="title"/>',
         '</form>'
       );
-    };
+    }
 
   });
 

@@ -91,6 +91,15 @@ Please contact me for further guidance.
 
 ### Change log
 
+**0.9.0**
+- Revamped the API to make it feel more like Backbone JS
+- Optimized removal of components
+- Improved bindings
+- Added immutable method
+- Changed STATE to STORE
+- Changed exports object to return object instead
+- Removed flush, just use emit
+
 **0.8.0**
 - Welcome to contribute!
 - Changed test method signature to allow for internal testing

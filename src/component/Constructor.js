@@ -1,12 +1,12 @@
 function Component (props) {
+
+  this.events = {};
+  this.bindings = {};
   this._initialRenders = [];
   this._isRendering = false;
   this._bindings = [];
-  this._components = [];
   this._renders = [];
   this._listeners = [];
-  this._plugins = [];
-  this._stateListeners = []; // State changes
   this.props = props || {};
 }
 

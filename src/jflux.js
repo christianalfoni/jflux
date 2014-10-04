@@ -6,8 +6,9 @@ var component = require('./component.js');
 var router = require('./router.js');
 var run = require('./jflux/run.js');
 var action = require('./action.js');
-var state = require('./state.js');
+var store = require('./store.js');
 var test = require('./test.js');
+var utils = require('./utils.js');
 
 var exports = {
     run: run,
@@ -17,8 +18,9 @@ var exports = {
     component: component,
     route: router.route,
     action: action,
-    state: state,
+    store: store,
     test: test,
+    immutable: utils.deepClone,
     fakeState: function (exports) {
       return this.state(function () {
         this.exports = exports;

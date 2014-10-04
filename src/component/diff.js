@@ -44,9 +44,7 @@ var diff = function (renders, initialRenders, node) {
       initialRenders[index].get(0).nodeValue = renders.text();
 
     } else if (renders instanceof dom.$) {
-
       diffAttributes(renders, initialRenders[index]);
-
     }
 
   });

@@ -1,5 +1,20 @@
+var dom = require('./dom.js');
+
 var exports = {};
 
+exports.deepClone = function (object) {
+
+  if (Array.isArray(object)) {
+    return object.map(function (item) {
+      return exports.deepClone(item);
+    });
+  } else if (exports.isObject(object)) {
+    return dom.$.extend(true, {}, object);
+  } else {
+    return object;
+  }
+
+};
 
 exports.isParam = function (part) {
   var match = part.match(/^\{.*\}$/);
@@ -79,12 +94,15 @@ exports.compileRoute = function (path, params) {
   return path;
 };
 
-exports.merge = function (source, target) {
-  for (var prop in source) {
-    if (source.hasOwnProperty(prop)) {
-      target[prop] = source[prop];
+exports.mergeTo = function (target) {
+  var sources = Array.prototype.splice.call(arguments, 1, arguments.length - 1);
+  sources.forEach(function (source) {
+    for (var prop in source) {
+      if (source.hasOwnProperty(prop)) {
+        target[prop] = source[prop];
+      }
     }
-  }
+  });
   return target;
 };
 
@@ -144,6 +162,18 @@ exports.grabContextValue = function (context, grabber) {
   return value;
 };
 
+exports.createGrabObject = function (context, grabString) {
+  var grabs = grabString.split('.');
+  var prop = grabs.pop();
+  grabs.forEach(function (grab) {
+    context = context[grab];
+  });
+  return {
+    prop: prop,
+    context: context
+  }
+};
+
 exports.createClassString = function (obj) {
   var classes = [];
   for (var prop in obj) {
@@ -152,7 +182,8 @@ exports.createClassString = function (obj) {
     }
   }
   return classes.join(' ');
-}
+};
+
 exports.createStyleString = function (obj) {
   var classes = [];
   for (var prop in obj) {
@@ -161,6 +192,14 @@ exports.createStyleString = function (obj) {
     }
   }
   return classes.join(';');
-}
+};
+
+exports.extractTypeAndTarget = function (event) {
+  var eventArray = event.split(' ');
+  return {
+    type: eventArray[0],
+    target: eventArray[1]
+  };
+};
 
 module.exports = exports;

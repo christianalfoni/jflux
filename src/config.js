@@ -27,7 +27,7 @@ var config = function (options) {
     if (!options) {
         return _options;
     } else {
-        utils.merge(options, _options);
+        utils.mergeTo(_options, options);
     }
 };
 

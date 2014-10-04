@@ -1,25 +1,25 @@
-define(['jflux', 'AppState', 'actions', 'components/Todo'], function ($$, AppState, actions, Todo) {
+define(['jflux', 'AppStore', 'actions', 'components/Todo'], function ($$, AppStore, actions, Todo) {
 
-  return $$.component(function (template) {
-
-    this.toggleAll = function ($el) {
-      actions.toggleAllTodos($el.is(':checked'));
-    };
-
-    this.compileTodos = function (compile) {
+  return $$.component({
+    allChecked: false,
+    events: {
+      'change #toggle-all': 'toggleAll'
+    },
+    init: function () {
+      this.listenTo(AppStore, 'update', this.update);
+    },
+    toggleAll: function (event) {
+      var isChecked = $(event.currentTarget).is(':checked');
+      actions.toggleAllTodos(isChecked);
+    },
+    compileTodos: function (compile) {
       return compile(
         Todo({todo: this.item})
       );
-    };
-
-    this.listenTo(AppState, this.update);
-    this.listenTo('change', '#toggle-all', this.toggleAll);
-    this.render = function (compile) {
-
-      var todos = this.map(AppState.getTodos(), this.compileTodos);
-
-      this.allChecked = AppState.allCompleted() && todos.length > 0;
-
+    },
+    render: function (compile) {
+      var todos = this.map(AppStore.getTodos(), this.compileTodos);
+      this.allChecked = AppStore.allCompleted() && todos.length > 0;
       return compile(
         '<div>',
           '<input id="toggle-all" type="checkbox" $$-checked="allChecked"/>',
@@ -29,7 +29,7 @@ define(['jflux', 'AppState', 'actions', 'components/Todo'], function ($$, AppSta
         '</div>'
       );
 
-    };
+    }
 
   });
 

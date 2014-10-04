@@ -12,15 +12,16 @@ An easy to use unidirectional component based framework.
     - [$$.render](#jflux-render)
     - [$$.run](#jflux-run)
     - [$$.path](#jflux-path)
+    - [$$.immutable](#jflux-immutable)
   - [Actions](#actions)
     - [Create actions](#actions-createactions)
     - [Listening to actions](#actions-listeningtoactions)
-  - [State](#state)
-    - [Create states](#state-createstates)
-    - [State mutators](#state-statemutators)
-    - [Listening to actions](#state-listeningtoactions)
-    - [Exports](#state-exports)
-    - [Emit](#state-emit)
+  - [Store](#store)
+    - [Create states](#store-createstates)
+    - [State mutators](#store-statemutators)
+    - [Listening to actions](#store-listeningtoactions)
+    - [Exports](#store-exports)
+    - [Emit](#store-emit)
   - [Components](#components)
     - [Create a component](#components-createacomponent)
     - [Compile](#components-compile)
@@ -68,9 +69,9 @@ $$.config({
     // need baseUrl: '/todomvc'
     baseUrl: '',
 
-    // When popstate: false the router will use hash urls, like: /#/home, with
-    // popstate: true it will use HTML5 routing, like: '/home'
-    popstate: false,
+    // When pushState: false the router will use hash urls, like: /#/home, with
+    // pushState: true it will use HTML5 routing, like: '/home'
+    pushState: false,
 
     // The router will trigger on page load. If set to autoRoute: false, you
     // will have to use the $$.run() method to start the router.
@@ -98,9 +99,9 @@ var AppState = $$.state(function () {
 
   var list = [];
 
-  this.exports = {
+  return {
     getList: function () {
-      return list;
+      return $$.immutable(list);
     }
   };
 
@@ -110,15 +111,15 @@ var AppState = $$.state(function () {
 ####<a name="jflux-component">$$.component(func)</a>
 Returns a component. Please go to [Components](#components) to read more about the component API.
 ```javascript
-var MyComponent = $$.component(function () {
+var MyComponent = $$.component({
 
-  this.render = function (compile) {
+  render: function (compile) {
     return compile(
       '<h1>',
         'Hello world',
       '</h1>'
     );
-  };
+  }
 
 });
 ```
@@ -159,6 +160,11 @@ Returns the current route path.
 ```javascript
 $$.path() // f.ex. "/posts/1"
 ```
+####<a name="jflux-immutable">$$.immutable()</a>
+Returns a deep cloned version of the array or object passed
+```javascript
+$$.immutable([{id: 1, title: 'foo'}]);
+```
 
 ###<a name="actions">Actions</a>
 Actions defines what state changes your application is able to do. Reading the list of actions
@@ -184,10 +190,10 @@ actions.editTodo(todo, 'newTitle');
 ```
 
 ####<a name="actions-listeningtoactions">Listening to actions</a>
-Only states created will be able to listen to actions, do state changes and
-flush updates to listening components.
+Only stores created will be able to listen to actions, do state changes and
+notify about updates to listening components.
 ```javascript
-var AppState = $$.state(function () {
+var AppStore = $$.store(function () {
 
   // A state
   var todos = [];
@@ -195,7 +201,7 @@ var AppState = $$.state(function () {
   // A state mutator
   this.addTodo = function (todo) {
     todos.push(todo);
-    this.flush();
+    this.emit('update');
   };
 
   // Listen to an action
@@ -203,7 +209,7 @@ var AppState = $$.state(function () {
 
   // Export methods that components can use to get
   // state information
-  this.exports = {
+  return {
     getTodos: function () {
       return todos;
     }
@@ -212,15 +218,15 @@ var AppState = $$.state(function () {
 });
 ```
 
-### <a name="state">State</a>
-State objects holds state of your application. You may only have on "AppState" object or
-multiple state objects that will handle different types of state in your application.
+### <a name="store">Store</a>
+Store objects holds state of your application. You may only have on "AppStore" object or
+multiple store objects that will handle different types of state in your application.
 
-####<a name="state-creatingstates">Creating states</a>
-Your state is contained inside one or multiple state objects. The states are
+####<a name="store-creatingstates">Creating stores</a>
+Your state is contained inside one or multiple store objects. The states are
 normally defined by declaring a variable.
 ```javascript
-var AppState = $$.state(function () {
+var AppStore = $$.store(function () {
 
   // A todos list state
   var todos = [];
@@ -234,11 +240,11 @@ var AppState = $$.state(function () {
 });
 ```
 
-####<a name="state-statemutators">State mutators</a>
+####<a name="store-statemutators">State mutators</a>
 State mutators are normally triggered by an action listener and will change
 declared variables.
 ```javascript
-var AppState = $$.state(function () {
+var AppStore = $$.store(function () {
 
   var todos = [];
   var filter = {
@@ -247,53 +253,26 @@ var AppState = $$.state(function () {
   };
 
   // The mutator use data passed to mutate
-  // a state. Then it flushes to inform
+  // a state. Then it emits an event to inform
   // listening components about the update
   this.addTodo = function (todo) {
     todos.push(todo);
-    this.flush();
+    this.emit('update');
   };
 
 
   this.filter = function (filterOptions) {
     filter = filterOptions;
-    this.flush();
+    this.emit('update');
   };
 
 });
 ```
-
-####<a name="state-flush">Flush</a>
-Run the flush method to notify components about an update.
-```javascript
-var AppState = $$.state(function () {
-
-  var todos = [];
-  var filter = {
-    completed: true,
-    active: true
-  };
-
-  this.addTodo = function (todo) {
-    todos.push(todo);
-    this.flush(); // Notify all listening components about an update
-  };
-
-
-  this.filter = function (filterOptions) {
-    filter = filterOptions;
-    this.flush(); // Notify all listening components about an update
-  };
-
-
-});
-```
-
-####<a name="state-listeningtoactions">Listening to actions</a>
+####<a name="store-listeningtoactions">Listening to actions</a>
 A state object in jFlux listens to actions and trigger their
 state mutators.
 ```javascript
-var AppState = $$.state(function () {
+var AppStore = $$.store(function () {
 
   var todos = [];
   var filter = {
@@ -303,12 +282,12 @@ var AppState = $$.state(function () {
 
   this.addTodo = function (todo) {
     todos.push(todo);
-    this.flush();
+    this.emit('update');
   };
 
   this.filter = function (filterOptions) {
     filter = filterOptions;
-    this.flush();
+    this.emit('update');
   };
 
   // Listen to the function that is used to trigger
@@ -319,12 +298,12 @@ var AppState = $$.state(function () {
 });
 ```
 
-####<a name="state-exports">Exports</a>
-Components will need to extract the states from the state object. This is done
-by defining export methods. These methods should only be "getters", not "setters".
+####<a name="store-exports">Exports</a>
+Components will need to extract the states from the store. This is done
+by returning an object with methods from the store. These methods should only be "getters", not "setters".
 State change is only done by actions.
 ```javascript
-var AppState = $$.state(function () {
+var AppStore = $$.store(function () {
 
   var todos = [];
   var filter = {
@@ -334,12 +313,12 @@ var AppState = $$.state(function () {
 
   this.addTodo = function (todo) {
     todos.push(todo);
-    this.flush();
+    this.emit('update');
   };
 
   this.filter = function (filterOptions) {
     filter = filterOptions;
-    this.flush();
+    this.emit('update');
   };
 
   this.listenTo(actions.addTodo, this.addTodo);
@@ -347,24 +326,24 @@ var AppState = $$.state(function () {
 
   // We define a method that will be available to components.
   // It returns a list of todos based on the current state of
-  // the filter
-  this.exports = {
+  // the filter. We make sure that the state returned is immutable
+  return = {
     getTodos: function () {
-      return todos.filter(function (todo) {
+      return $$.immutable(todos.filter(function (todo) {
         return (filter.completed && todo.completed) || (filter.active && !todo.completed);
-      });
+      }));
     }
   };
 
 });
 ```
 
-####<a name="state-emit">Emit</a>
+####<a name="store-emit">Emit</a>
 There might be situations where you want to notify components about a specific state change. That is useful for state
  updates that happens very often. Look at [Listening to state changes](#components-listeningtostatechanges), for more
   information.
 ```javascript
-var AppState = $$.state(function () {
+var AppStore = $$.store(function () {
 
   var duration = 0;
 
@@ -374,7 +353,7 @@ var AppState = $$.state(function () {
     state.emit('duration:update');
   }, 100);
 
-  this.exports = {
+  return {
     getDuration: function () {
       return duration;
     }
@@ -391,15 +370,15 @@ can live inside other components.
 The minimum boilerplate for a component is to define a render callback that
 returns a DOM representation with a top node. The default render method compiles a single `div`.
 ```javascript
-var MyComponent = $$.component(function () {
+var MyComponent = $$.component({
 
-  this.render = function (compile) {
+  render: function (compile) {
     return compile(
       '<h1>',
         'Hello world',
       '</h1>'
     );
-  };
+  }
 
 });
 ```
@@ -410,7 +389,7 @@ returns a UI data structure that jFlux understands. Compile can take the followi
 
 - string
 - number
-- array of templates
+- array of compiled DOM representations
 - Component
 
 The arguments builds a DOM structure that will be appended to wherever the component
@@ -420,15 +399,15 @@ is appended or diffed with existing render of the component.
 Components can receive properties. These properties are passed when a component is rendered to an existing DOM node, or when composed into an other component. The properties are an object that can take any values. You point to the passed properties with: `this.props`.
 
 ```javascript
-var MyComponent = $$.component(function () {
+var MyComponent = $$.component({
 
-  this.render = function (compile) {
+  render: function (compile) {
     return compile(
       '<h1>',
         this.props.title,
       '</h1>'
     );
-  };
+  }
 
 });
 
@@ -440,24 +419,23 @@ If you need to compile a list of elements you can use the `map` method provided.
 The context of the map callback will be unique. You can use that context to add "render-props", point to the item
 in the current iteration and the "props" passed to the component itself.
 ```javascript
-var MyComponent = $$.component(function () {
+var MyComponent = $$.component({
 
-  this.compileList = function (compile) {
+  compileList: function (compile) {
     return compile(
       '<li>',
         this.item,
       '</li>'
     );
-  };
-
-  this.render = function (compile) {
+  },
+  render: function (compile) {
     var list = this.map(['foo', 'bar'], this.compileList);
     return compile(
       '<ul>',
         list,
       '</ul>'
     );
-  };
+  }
 
 });
 ```
@@ -469,166 +447,150 @@ can grab values from. In a list the item iterated over is the property "item". Y
 rest of the context you can use to add yourn own "render props".
 
 ```javascript
-var MyComponent = $$.component(function () {
-  this.myList = [{id: '1', title: 'foo'}, {id: '2', title: 'bar'}];
-  this.compileList = function (compile) {
+var MyComponent = $$.component({
+
+  // Setting a prop on the component
+  myList: [{id: '1', title: 'foo'}, {id: '2', title: 'bar'}],
+  myId: 'foo',
+
+  // This method is called with the map method below
+  compileList: function (compile) {
     return compile(
+      // Item can be pointed to via the attribute
       '<div $$-id="item.id">' + this.item.title + '</div>'
     );
-  };
-  this.render = function (compile) {
-
-    // In context of a list
+  },
+  render: function (compile) {
     var list = this.map(this.myList, this.compileList);
-
-    // In context of the render method
-    this.myId = 'myId';
     return compile(
       '<div $$-id="myId"></div>'
     );
-  };
+  }
 
 });
 ``
 
 #####<a name="components-attributes-id">$$-id</a>
 ```javascript
-var MyComponent = $$.component(function () {
-
-  this.render = function (compile) {
-    this.myId = 'myId';
+var MyComponent = $$.component({
+  myId: 'foo',
+  render: function (compile) {
     return compile(
       '<ul $$-id="myId">',
         list,
       '</ul>'
     );
-  };
-
+  }
 });
 ```
 #####<a name="components-attributes-class">$$-class</a>
 The class attribute needs to point to an object where the keys are the class names and the value is either true or false. True values will add the class name, false will not.
 ```javascript
-var MyComponent = $$.component(function () {
+var MyComponent = $$.component({
 
-  this.render = function (compile) {
-
-    this.myListClass = {
-      active: $$.path() === '/',
-      'my-list-class': true
-    };
-
+  listClass: {
+   'active': $$.path() === '/',
+   'list-class': true
+  },
+  render: function (compile) {
     return compile(
-      '<ul $$-class="myListClass">',
+      '<ul $$-class="listClass">',
         list,
       '</ul>'
     );
-  };
+  }
 
 });
 ```
 #####<a name="components-attributes-checked">$$-checked</a>
 ```javascript
-var MyComponent = $$.component(function () {
-
-  this.render = function (compile) {
-    this.isActive = true;
+var MyComponent = $$.component({
+  isActive: true,
+  render: function (compile) {
     return compile(
       '<input type="checkbox" $$-checked="isActive"/>'
     );
-  };
-
+  }
 });
 ```
 #####<a name="components-attributes-disabled">$$-disabled</a>
 ```javascript
-var MyComponent = $$.component(function () {
-
-  this.render = function (compile) {
-    this.isDisabled = false;
+var MyComponent = $$.component({
+  isDisabled: false,
+  render: function (compile) {
     return compile(
       '<input type="checkbox" $$-disabled="isDisabled"/>'
     );
-  };
-
+  }
 });
 ```
 #####<a name="components-attributes-value">$$-value</a>
 ```javascript
-var MyComponent = $$.component(function () {
-
+var MyComponent = $$.component({
   this.render = function (compile) {
     this.myValue = 'Hello there';
     return compile(
       '<input type="text" $$-value="myValue"/>'
     );
-  };
-
+  }
 });
 ```
 
 #####<a name="components-attributes-style">$$-style</a>
 ```javascript
-var MyComponent = $$.component(function () {
-
-  this.render = function (compile) {
-    this.myStyle = {
-      color: 'red'
-    };
+var MyComponent = $$.component({
+  style: {
+    color: 'red'
+  },
+  render: function (compile) {
     return compile(
-      '<div $$-style="myStyle"/>'
-    );
-  };
-
+      '<div $$-style="style"/>'
+    )
+  }
 });
 ```
 
 #####<a name="components-attributes-href">$$-href</a>
 ```javascript
-var MyComponent = $$.component(function () {
-
-  this.render = function (compile) {
-    this.url = 'http://www.jflux.io';
+var MyComponent = $$.component({
+  url: 'http://www.jflux.io',
+  render: function (compile) {
     return compile(
       '<a $$-href="url"/>'
     );
-  };
-
+  }
 });
 ```
 
 #####<a name="components-attributes-show">$$-show</a>
 ```javascript
-var MyComponent = $$.component(function () {
-
-  this.render = function (compile) {
-    this.isReady = true;
+var MyComponent = $$.component({
+  isReady: true,
+  render: function (compile) {
     return compile(
       '<div $$-show="isReady"></div>'
     );
-  };
-
+  }
 });
 ```
 
 #####<a name="components-attributes-data">$$-data</a>
 ```javascript
-var MyComponent = $$.component(function () {
-
-  this.onClick = function (data) {
-    console.log(data.foo); // "bar"
-  };
-
-  this.listenTo('click', this.onClick);
-  this.render = function (compile) {
-    this.someData = {
-      foo: 'bar'
-    };
+var MyComponent = $$.component({
+  someData: {
+    foo: 'bar'
+  },
+  events: {
+    'click', 'onClick'
+  },
+  onClick: function (event) {
+    console.log(event.data.foo); // "bar"
+  },
+  render: function (compile) {
     return compile(
       '<div $$-data="someData"></div>'
     );
-  };
-
+  }
 });
 ```
 
@@ -636,22 +598,22 @@ var MyComponent = $$.component(function () {
 A component DOM representation can take other components as arguments.
 
 ```javascript
-var Item = $$.component(function () {
-  this.render = function (compile) {
+var Item = $$.component({
+  render: function (compile) {
     return compile(
       '<li>',
         this.props.label,
       '</li>'
     );
-  };
+  }
 });
-var List = $$.component(function () {
-  this.compileItems = function (compile) {
+var List = $$.component({
+  compileItems: function (compile) {
     return compile(
-      Item({label: this})
+      Item({label: this.item})
     );
-  };
-  this.render = function (compile) {
+  },
+  render: function (compile) {
     var items = this.map(['foo', 'bar'], this.compileItems);
     return compile(
       '<ul>',
@@ -659,7 +621,7 @@ var List = $$.component(function () {
         items,
       '</ul>'
     );
-  };
+  }
 });
 ```
 
@@ -668,35 +630,34 @@ Since jFlux is based on jQuery you will be able to use delegated events
 in your component to listen for user interaction.
 
 ```javascript
-var MyComponent = $$.component(function () {
-  this.log = function () {
+var MyComponent = $$.component({
+  events: {
+    'click': 'log'
+  },
+  log: function () {
     console.log('I was clicked!');
-  };
-
-  // The top node is what we are listening to, so no need to
-  // set a target
-  this.listenTo('click', this.log);
-  this.render = function (compile) {
+  },
+  render: function (compile) {
     return compile(
       '<button>',
         'Click me!',
       '</button>'
     );
-  };
+  }
 });
 ```
 
 If the node you listen to is nested in the DOM representation, use delegation:
 
 ```javascript
-var MyComponent = $$.component(function () {
-  this.log = function () {
+var MyComponent = $$.component({
+  events: {
+    'click button': 'log'
+  },
+  log: function () {
     console.log('I was clicked!');
-  };
-
-  // The second argument can be any jQuery selector
-  this.listenTo('click', 'button', this.log);
-  this.render = function (compile) {
+  },
+  render: function (compile) {
     return compile(
       '<div>',
         '<button>',
@@ -704,29 +665,7 @@ var MyComponent = $$.component(function () {
         '</button>',
       '</div>'
     );
-  };
-});
-```
-
-####<a name="components-plugins">Plugins</a>
-You can use any and multiple jQuery plugins in your component. This makes components increadibly
-powerful as there already are lots of plugins out there.
-
-```javascript
-var MyComponent = $$.component(function () {
-
-  // First argument is the name of the plugin, f.ex. $('a').dropdown() will be
-  // 'dropdown'. The second argument is only needed if the plugin is triggered
-  // on a nested element in the DOM representation. The last argument are the options passed
-  // to the plugin
-  this.plugin('someJQueryPlugin', 'span', {someOption: 'someValue'});
-  this.render = function (compile) {
-    return compile(
-      '<div>',
-        '<span></span>',
-      '</div>'
-    );
-  };
+  }
 });
 ```
 
@@ -734,78 +673,85 @@ var MyComponent = $$.component(function () {
 Components are very smart when updating. They will do a diff of the jFlux UI structure and only do necessary DOM operations to update the UI. This includes attributes, text nodes and lists. You can call `this.update()` at any time, though they are normally used with state updates.
 
 ```javascript
-var MyComponent = $$.component(function () {
-
-  this.style = {
+var MyComponent = $$.component({
+  style = {
     color: 'red'
-  };
-
-  this.changeColor = function () {
+  },
+  events: {
+    'click button': 'changeColor'
+  },
+  changeColor: function () {
     this.style.color = this.style.color === 'red' ? 'blue' : 'red';
     this.update();
-  };
-
-  this.listenTo('click', 'button', this.changeColor);
-  this.render = function (compile) {
+  },
+  render: function (compile) {
     return compile(
       '<div $$-style="style">',
         '<button>Change color</button>',
       '</div>'
     );
-  };
+  }
 });
 ```
 
 ####<a name="components-listeningtostatechanges">Listening to state changes</a>
-Components listens to state changes on state objects. They do this by using the `listenTo` method also used to listen for UI interaction. When the state object flushes the component will rerender itself.
+Components listens to state changes in stores. They do this by using the `listenTo` method.
+When the store triggers an 'update' event the component can f.ex. run the update method to
+update the component.
 
 ```javascript
-var MyComponent = $$.component(function () {
-  this.listenTo(AppState, this.update);
-  this.render = function (compile) {
+var MyComponent = $$.component({
+  init: function () {
+    this.listenTo(AppStore, 'update', this.update);
+  },
+  render: function (compile) {
     return compile(
       '<h1>',
-        AppState.getTitle(),
+        AppStore.getTitle(),
       '</h1>'
     );
-  };
+  }
 });
 ```
 
-You can also listen to specific events emitted from a state. This is useful when you need to notify a component very
-often and do not want to flush out to the whole application:
+You can also listen to specific events emitted from a store. This is useful when you need to notify a component very
+often and do not want to emit a generic 'update' event
 
 ```javascript
-var MyComponent = $$.component(function () {
-  this.listenTo('duration:update', AppState, this.update);
-  this.render = function (compile) {
+var MyComponent = $$.component({
+  init: function () {
+    this.listenTo(AppStore, 'duration:update', this.update);
+  },
+  render: function (compile) {
     return compile(
       '<h1>',
-        AppState.getDuration(),
+        AppStore.getDuration(),
       '</h1>'
     );
-  };
+  }
 });
 ```
 
 ####<a name="components-bindingtoinputs">Binding to inputs</a>
-Sometimes you want to bind to inputs. The inputs might affect a state in your component and you need it to update automatically. Meet bind, it will update your component on
-input change:
+Sometimes you want to bind to inputs. The inputs might affect a state in your component and you need it to update
+automatically. Meet bindings, they will update your component on input change:
 
 ```javascript
-var MyComponent = $$.component(function () {
-  var todo = {
+var MyComponent = $$.component({
+  item: {
     title: '',
     description: ''
-  };
-  this.bind(model, 'title', 'input[name="title"]');
-  this.bind(model, 'description', 'input[name="description"]');
-  this.render = function (compile) {
-    this.invalidTodo = !(todo.title && todo.description);
+  },
+  bindings: {
+    'input[name="title"]': 'item.title',
+    'input[name="description"]': 'item.description
+  },
+  render: function (compile) {
+    this.invalidTodo = !(this.item.title && this.item.description);
     return compile(
       '<div>',
-        '<input name="title" type="text"/>',
-        '<input name="description" type="text"/>',
+        '<input name="title" type="text" $$-value="item.title"/>',
+        '<input name="description" type="text" $$-value="item.description"/>',
         '<button $$-disabled="invalidTodo">',
           'Add',
         '</button>',
@@ -814,22 +760,23 @@ var MyComponent = $$.component(function () {
   };
 });
 ```
-The button in this example will only be enabled if there is both a title and a description.
+The button in this example will only be enabled if there is both a title and a description. Also notice that we set
+the values of the inputs to the binded properties.
 
 ####<a name="components-afterrender">After render</a>
 You might need to manipulate the DOM content after a render. F.ex. using plugins that attach to specific DOM nodes.
 You can use **afterRender()** for that.
 
 ```javascript
-var MyComponent = $$.component(function () {
-  this.afterRender = function () {
+var MyComponent = $$.component({
+  afterRender: function () {
     MyExternalLib.attachTo(this.$el[0]);
-  };
-  this.render = function (compile) {
+  },
+  render: function (compile) {
     return compile(
       '<div></div>'
     );
-  };
+  }
 });
 ```
 

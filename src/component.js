@@ -21,6 +21,10 @@ Constructor.prototype = {
   // Runs when the component is added to the DOM by $$.render
   _init: function () {
 
+    if (this.init) {
+      this.init();
+    }
+
     // Render the component and set it as the current render and the initial render
     this._renders = this._initialRenders = this.render(this._compiler.bind(this));
 
@@ -34,11 +38,12 @@ Constructor.prototype = {
     }
 
     // Compile the renders, add bindings and listeners
-    this.$el = compile(this._renders, this._components);
+    this.$el = compile(this._renders);
 
     this._addBindings();
     this._addListeners();
-    this._addStateListeners();
+
+    this.$el.on('destroy', this._remove.bind(this));
 
     if (this.afterRender) {
       this.afterRender();
@@ -51,15 +56,9 @@ Constructor.prototype = {
   // Cleans up the listeners and removes the component from the DOM
   _remove: function () {
 
-    this._stateListeners.forEach(function (listener) {
+    this._listeners.forEach(function (listener) {
       listener.target.removeListener(listener.type, listener.cb);
     });
-
-    this._components.forEach(function (component) {
-      component._remove();
-    });
-
-    this.$el.remove();
 
     if (this.teardown) {
       this.teardown();
@@ -84,26 +83,36 @@ Constructor.prototype = {
   _addBindings: function () {
 
     var component = this;
-    this._bindings.forEach(function (binding) {
+    Object.keys(this.bindings).forEach(function (binding) {
 
-      var $el = binding.selector ? component.$(binding.selector) : component.$el;
+
+      var $el = binding ? component.$(binding) : component.$el;
+
       if ($el.is(':checkbox')) {
 
         $el.on('change', function () {
-          binding.obj[binding.key] = $el.prop('checked');
+          var grabObject = utils.createGrabObject(component, component.bindings[binding]);
+          grabObject.context[grabObject.prop] = $el.is(':checked');
           component.update();
         });
 
       } else {
 
-        $el.on('keydown', function () {
+        $el.on('keydown', function (event) {
 
-          // Use setTimeout to grab the value after keydown has run.
-          // Gives the best experience
-          setTimeout(function () {
-            binding.obj[binding.key] = $el.val();
-            component.update();
-          }, 0);
+          // Do not update on ENTER due to form submit
+          if (event.keyCode !== 13) {
+
+            // Use setTimeout to grab the value after keydown has run.
+            // Gives the best experience
+            setTimeout(function () {
+              var grabObject = utils.createGrabObject(component, component.bindings[binding]);
+              grabObject.context[grabObject.prop] = $el.val();
+              component.update();
+            }, 0);
+
+          }
+
         });
 
       }
@@ -114,56 +123,38 @@ Constructor.prototype = {
   // Adds interaction listeners, like "click" etc.
   _addListeners: function () {
     var component = this;
-    this._listeners.forEach(function (listener) {
+    Object.keys(this.events).forEach(function (listenerDefinition) {
+
+      var listener = utils.extractTypeAndTarget(listenerDefinition);
+
+      if (!component[component.events[listenerDefinition]]) {
+        error.create({
+          source: component[component.events[listenerDefinition]],
+          message: 'There is no method called ' + component.events[listenerDefinition],
+          support: 'Make sure that you add methods described in events on your component',
+          url: '' // TODO: Add url
+        })
+      }
 
       if (listener.target) {
         component.$el.on(listener.type, listener.target, function (event) {
+
           var $target = dom.$(event.currentTarget);
-          var data = $target.data('data');
-          if (data) {
-            listener.cb.call(component, data, $target, event);
-          } else {
-            listener.cb.call(component, $target, event);
-          }
+          event.data = $target.data('data');
+          component[component.events[listenerDefinition]](event);
+
         });
       } else {
+
         component.$el.on(listener.type, function (event) {
-          var data = dom.$.data(component.$el[0], 'data');
-          if (data) {
-            listener.cb.call(component, data, event);
-          } else {
-            listener.cb.call(component, event);
-          }
+
+          event.data = component.$el.data('data');
+          component[component.events[listenerDefinition]](event);
 
         });
       }
 
     });
-  },
-
-  _addStateListeners: function () {
-    this._stateListeners.forEach(function (listener) {
-
-      listener.target.on(listener.type, listener.cb);
-
-    });
-  },
-
-  // Triggers plugins on elements
-  _addPlugins: function () {
-
-    this._plugins.forEach(function (plugin) {
-
-      if (plugin.target) {
-        this.$(plugin.target)[plugin.name](plugin.options);
-      } else if (Array.isArray(plugin.options)) {
-        this.$el[plugin.name].apply(this.$el, plugin.options);
-      } else {
-        this.$el[plugin.name](plugin.options);
-      }
-
-    }, this);
-
   },
 
   /*
@@ -243,62 +234,25 @@ Constructor.prototype = {
       '<div></div>'
     );
   },
-  listenTo: function (type, target, cb) {
+  listenTo: function (target, type, cb) {
 
     if (this._isRendering) {
-      throw new Error('Do not run listenTo() in your render callback');
-    }
-
-    // If first or second argument is an object, it is a state listener
-    if (typeof type === 'object' || typeof target === 'object') {
-
-      cb = arguments.length === 3 ? cb.bind(this) : target.bind(this);
-      target = arguments.length === 3 ? target : type;
-      type = arguments.length === 3 ? type : 'update';
-      this._stateListeners.push({
-        type: type,
-        target: target,
-        cb: cb
+      error.create({
+        source: null,
+        message: 'You are running listenTo in your render',
+        support: 'The listenTo method is to be run in the init method',
+        url: ''
       });
-
-    } else {
-
-      this._listeners.push({
-        type: type,
-        target: typeof target === 'function' ? null : target,
-        cb: typeof cb === 'function' ? cb : target
-      });
-
-    }
-  },
-  plugin: function () {
-
-    if (this._isRendering) {
-      throw new Error('Do not run plugin() in your render callback');
     }
 
-    var name = arguments[0];
-    var target = typeof arguments[1] === 'string' ? arguments[1] : null;
-    var options = arguments.length === 3 ? arguments[2] : arguments[1];
-
-    this._plugins.push({
-      name: name,
+    cb = cb.bind(this);
+    this._listeners.push({
       target: target,
-      options: options
+      type: type,
+      cb: cb
     });
 
-  },
-  bind: function (obj, key, selector) {
-
-    if (this._isRendering) {
-      throw new Error('Do not run plugin() in your render callback');
-    }
-
-    this._bindings.push({
-      obj: obj,
-      key: key,
-      selector: selector
-    });
+    target.on(type, cb);
 
   },
 
@@ -317,11 +271,11 @@ Constructor.prototype = {
   }
 };
 
-module.exports = function (constr) {
+module.exports = function (description) {
   return function (props) {
-    var component = new Constructor(props);
-    constr.call(component);
-    component._constr = constr;
+    var base = new Constructor(props);
+    var component = utils.mergeTo(base, description);
+    component._description = description;
     return component;
   }
 };

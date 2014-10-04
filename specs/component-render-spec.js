@@ -5,12 +5,12 @@ describe("isParam()", function () {
 
     $$.test(function ($) {
 
-      var Comp = $$.component(function () {
-        this.render = function (compile) {
+      var Comp = $$.component({
+        render: function (compile) {
           return compile(
             '<div>Hello world</div>'
           );
-        };
+        }
       });
       $$.render(Comp(), 'body');
       expect($('div').text()).toBe('Hello world');

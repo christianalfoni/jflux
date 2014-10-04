@@ -1,5 +1,5 @@
-var App = $$.component(function () {
-  this.render = function (compile) {
+var App = $$.component({
+  render: function (compile) {
     return compile(
       '<div>',
         '<h1>Application</h1>',
@@ -7,19 +7,19 @@ var App = $$.component(function () {
         '<div id="content"></div>',
       '</div>'
     );
-  };
+  }
 });
 
-var Home = $$.component(function () {
-  this.render = function (compile) {
+var Home = $$.component({
+  render: function (compile) {
     return compile(
       '<h2>Home</h2>'
     );
-  };
+  }
 });
 
-var Posts = $$.component(function () {
-  this.render = function (compile) {
+var Posts = $$.component({
+  render: function (compile) {
     return compile(
       '<div>',
         '<h2>Posts</h2>',
@@ -27,11 +27,11 @@ var Posts = $$.component(function () {
         '<div id="content-post"></div>',
       '</div>'
     );
-  };
+  }
 });
 
-var Post = $$.component(function () {
-  this.render = function (compile) {
+var Post = $$.component({
+  render: function (compile) {
     return compile(
       '<div>',
         '<h2>',
@@ -40,7 +40,7 @@ var Post = $$.component(function () {
         '<div>My post</div>',
       '</div>'
     );
-  };
+  }
 });
 
 $$.config({

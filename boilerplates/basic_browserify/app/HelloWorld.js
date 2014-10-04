@@ -1,16 +1,14 @@
 var $$ = require('jflux');
 
-var HelloWorld = $$.component(function () {
+var HelloWorld = $$.component({
 
-  this.render = function (compile) {
-
+  render: function (compile) {
     return compile(
       '<h1>',
-      'Hello world!',
+        'Hello world!',
       '</h1>'
     );
-
-  };
+  }
 
 });
 

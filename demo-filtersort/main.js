@@ -7,9 +7,9 @@ var actions = $$.action([
   ]);
 
 /*
- *  STATE
+ *  STORE
  */
-var ListState = $$.state(function () {
+var ListStore = $$.store(function () {
 
   var list = getNames();
   var filter = '';
@@ -26,17 +26,18 @@ var ListState = $$.state(function () {
         return 0;
       }
     });
-    this.flush();
+    this.emit('update');
   };
 
   this.setFilter = function (newFilter) {
     filter = newFilter;
-    this.flush();
+    this.emit('update');
   };
 
   this.listenTo(actions.sort, this.sort);
   this.listenTo(actions.filter, this.setFilter);
-  this.exports = {
+
+  return {
     getList: function () {
       if (filter) {
         return list.filter(function (person) {
@@ -52,49 +53,48 @@ var ListState = $$.state(function () {
 /*
  *  COMPONENT
  */
-var List = $$.component(function () {
-
-  this.sortIncreasing = function () {
+var List = $$.component({
+  filterValue: '',
+  events: {
+    'keyup :text': 'filter',
+    'click #sort-inc': 'sortIncreasing',
+    'click #sort-dec': 'sortDecreasing'
+  },
+  bindings: {
+    ':text': 'filterValue'
+  },
+  init: function () {
+    this.listenTo(ListStore, 'update', this.update);
+  },
+  sortIncreasing: function () {
     actions.sort(true);
-  };
-
-  this.sortDecreasing = function () {
+  },
+  sortDecreasing: function () {
     actions.sort(false);
-  };
-
-  this.filter = function () {
-    var component = this;
-    setTimeout(function () {
-      actions.filter(component.$('#filter').val());
-    }, 0);
-  };
-
-  this.compileNames = function (compile) {
+  },
+  filter: function () {
+    actions.filter(this.filterValue);
+  },
+  compileNames: function (compile) {
     return compile(
       '<li>',
         this.item.firstName + ' ' + this.item.lastName,
       '</li>'
-    );
-  };
-
-  this.listenTo(ListState, this.update);
-  this.listenTo('click', '#sort-inc', this.sortIncreasing);
-  this.listenTo('click', '#sort-dec', this.sortDecreasing);
-  this.listenTo('keydown', '#filter', this.filter);
-  this.render = function (compile) {
-    var list = this.map(ListState.getList(), this.compileNames);
+    )
+  },
+  render: function (compile) {
+  var list = this.map(ListStore.getList(), this.compileNames);
     return compile(
       '<div>',
         '<button id="sort-inc">Sort inc</button>',
         '<button id="sort-dec">Sort dec</button>',
-        '<input id="filter"/>',
+        '<input id="filter" $$-value="filterValue"/>',
         '<ul>',
           list,
         '</ul>',
       '</div>'
-    );
-  };
-
+    )
+  }
 });
 
 $(function () {

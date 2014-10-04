@@ -15,8 +15,7 @@ var removeFromList = function (renders, initialRenders) {
     var id = initialRendersIds[x];
     if (rendersIds.indexOf(id) === -1) {
 
-      // Use _remove if it is a component or remove if it is a jQuery object
-      initialRenders[x][0] instanceof Constructor ? initialRenders[x][0]._remove() : initialRenders[x][0].remove();
+      initialRenders[x][0] instanceof Constructor ? initialRenders[x][0].$el.remove() : initialRenders[x][0].remove();
       initialRenders.splice(x, 1);
 
     }

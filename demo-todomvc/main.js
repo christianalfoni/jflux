@@ -1,15 +1,14 @@
 require.config({
   paths: {
     'jflux': '../build/jflux',
-    'jquery': 'https://code.jquery.com/jquery-2.1.1.min'
+    'jquery': '../jquery'
   }
 });
 
 require(['jflux', 'components/Todomvc', 'actions'], function ($$, Todomvc, actions) {
 
   $$.config({
-    baseUrl: '/demo-todomvc',
-    popstate: false
+    baseUrl: '/demo-todomvc'
   });
 
   $$.route('/', function () {

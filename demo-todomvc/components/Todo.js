@@ -1,58 +1,56 @@
-define(['jflux', 'AppState', 'actions'], function ($$, AppState, actions) {
+define(['jflux', 'actions'], function ($$, actions) {
 
-  return $$.component(function () {
+  return $$.component({
 
-    this.isEditing = false;
-
-    this.removeTodo = function ($el) {
+    isEditing: false,
+    events: {
+      'dblclick': 'editTodo',
+      'click .destroy': 'removeTodo',
+      'change .toggle': 'toggleTodo',
+      'blur :text': 'stopEditing',
+      'submit form': 'stopEditing'
+    },
+    bindings: {
+      ':checkbox': 'props.todo.completed',
+      ':text': 'props.todo.title'
+    },
+    removeTodo: function () {
       actions.removeTodo(this.props.todo);
-    };
-
-    this.toggleTodo = function ($el) {
-      actions.toggleTodo(this.props.todo, $el.is(':checked'));  
-    };
-
-    this.editTodo = function ($el) {
+    },
+    toggleTodo: function () {
+      actions.toggleTodo(this.props.todo);
+    },
+    editTodo: function () {
       this.isEditing = true;
       this.update();
-      var $input = $el.find(':text');
+      var $input = this.$(':text');
       $input.focus();
       $input.val($input.val());
-    };
-
-    this.stopEditing = function ($el, event) {
+    },
+    stopEditing: function (event) {
       event.preventDefault();
-      var title = this.$(':text').val().trim();
-      if (title) {
-        actions.updateTodo(this.props.todo, title);
-      }
+      actions.updateTodo(this.props.todo, this.title);
       this.isEditing = false;
       this.update();
-    };
+    },
 
-    this.listenTo('click', '.destroy', this.removeTodo);
-    this.listenTo('change', '.toggle', this.toggleTodo);
-    this.listenTo('dblclick', this.editTodo);
-    this.listenTo('blur', ':text', this.stopEditing);
-    this.listenTo('submit', 'form', this.stopEditing);
-    this.render = function (compile) {
-      var todo = this.todo = this.props.todo;
-      this.itemClass = {completed: todo.completed, editing: this.isEditing};
+    render: function (compile) {
+      this.itemClass = {completed: this.props.todo.completed, editing: this.isEditing};
       return compile(
-        '<li $$-id="todo.id" $$-class="itemClass">',
+        '<li $$-class="itemClass">',
           '<div class="view">',
-            '<input class="toggle" type="checkbox" $$-checked="todo.completed"/>',
+            '<input class="toggle" type="checkbox" $$-checked="props.todo.completed"/>',
             '<label>',
-              todo.title,
+              this.props.todo.title,
             '</label>',
             '<button class="destroy"></button>', 
           '</div>',
           '<form>',
-          '<input type="text" $$-value="todo.title" class="edit"/>',
+          '<input type="text" $$-value="props.todo.title" class="edit"/>',
           '</form>',
         '</li>'
         );
-    };
+    }
 
   });
 

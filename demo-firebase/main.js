@@ -4,9 +4,9 @@
 var actions = $$.action(['addMessage']);
 
 /*
- * STATE
+ * STORE
  */
-var MessagesState = $$.state(function () {
+var MessageStore = $$.store(function () {
 
   var messages = [];
   
@@ -16,14 +16,9 @@ var MessagesState = $$.state(function () {
   // Creating a view to only show last 10 messages
   var view = db.limit(10);
   
-  this.addNewMessage = function (message) {
-    db.push(message);
-  };
-
   // Firebase will trigger this event, giving the last
   // 10 messages at any time. The messages are a hash,
   // so we have to convert them to an array, sorting by date
-  var state = this;
   view.on('value', function (value) {
     messages = value.val() || {};
     messages = Object.keys(messages).map(function (id) {
@@ -31,13 +26,28 @@ var MessagesState = $$.state(function () {
       message.id = id;
       return message;
     }).sort(function (a, b) {
-      return a.date < b.date;
+      if (a.date > b.date) {
+        return -1;
+      } else {
+        return 1;
+      }
     });
-    state.flush();
-  });
+    this.emit('update');
+  }.bind(this));
+
+  this.addNewMessage = function (text) {
+    text = text.trim();
+    if (text) {
+      db.push({
+        date: Date.now(),
+        text: text
+      });
+    }
+  };
 
   this.listenTo(actions.addMessage, this.addNewMessage);
-  this.exports = {
+
+  return {
     getMessages: function () {
       return messages;
     }
@@ -48,44 +58,45 @@ var MessagesState = $$.state(function () {
 /*
  * COMPONENT
  */
-var MessagesList = $$.component(function () {
+var MessagesList = $$.component({
 
-  this.addMessage = function (form, event) {
+  message: '',
+  events: {
+    'submit form': 'addMessage'
+  },
+  bindings: {
+    ':text': 'message'
+  },
+  init: function () {
+    this.listenTo(MessageStore, 'update', this.update);
+  },
+  addMessage: function (event) {
     event.preventDefault();
-    var text = this.$('input').val().trim();
-    if (text) {
-      actions.addMessage({
-        date: Date.now(),
-        text: text
-      });
-    }
-    this.$('input').val('');
-  };
+    actions.addMessage(this.message);
+    this.message = '';
+    this.update();
+  },
 
-  this.compileMessages = function (compile) {
+  compileMessages: function (compile) {
     return compile(
       '<li $$-id="item.id">',
         this.item.text,
       '</li>'
     );
-  };
-
-  this.listenTo(MessagesState, this.update);
-  this.listenTo('submit', 'form', this.addMessage);
-  
-  this.render = function (compile) {
-    var messages = this.map(MessagesState.getMessages(), this.compileMessages);
+  },
+  render: function (compile) {
+    var messages = this.map(MessageStore.getMessages(), this.compileMessages);
     return compile(
       '<div>',
         '<form>',
-          '<input/>',
+          '<input $$-value="message"/>',
         '</form>',
         '<ul>',
           messages,
         '</ul>',
       '</div>'
     );
-  };
+  }
 
 });
 

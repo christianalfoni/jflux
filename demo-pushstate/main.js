@@ -1,17 +1,18 @@
 $$.config({
   baseUrl: '/demo-pushstate',
+  pushState: true
 });
 
-var Home = $$.component(function () {
+var Home = $$.component({
 
-  this.render = function (compile) {
+  render: function (compile) {
     return compile(
       '<p>',
         this.props.content,
       '</p>',
       '<a href="/slide2">Slide2</a>'
     );
-  };
+  }
 
 });
 

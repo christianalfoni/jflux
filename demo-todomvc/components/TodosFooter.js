@@ -1,12 +1,14 @@
-define(['jflux', 'AppState'], function ($$, AppState) {
+define(['jflux', 'AppStore'], function ($$, AppStore) {
 
-  return $$.component(function () {
+  return $$.component({
 
-    this.listenTo(AppState, this.update);
-    this.render = function (compile) {
+   init: function () {
+     this.listenTo(AppStore, 'update', this.update);
+   },
+    render: function (compile) {
 
       var createRemainingText = function () {
-        var remaining = AppState.getRemainingCount();
+        var remaining = AppStore.getRemainingCount();
         return remaining + (remaining === 1 ? ' item' : ' items') + ' remaining';
       };
 
@@ -34,7 +36,7 @@ define(['jflux', 'AppState'], function ($$, AppState) {
         '</div>'
       );
 
-    };
+    }
 
   });
 
