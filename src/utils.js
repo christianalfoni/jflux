@@ -184,16 +184,6 @@ exports.createClassString = function (obj) {
   return classes.join(' ');
 };
 
-exports.createStyleString = function (obj) {
-  var classes = [];
-  for (var prop in obj) {
-    if (obj.hasOwnProperty(prop) && obj[prop]) {
-      classes.push(prop + ':' + obj[prop]);
-    }
-  }
-  return classes.join(';');
-};
-
 exports.extractTypeAndTarget = function (event) {
   var eventArray = event.split(' ');
   return {

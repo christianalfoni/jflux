@@ -15,11 +15,11 @@ var BindedComponent = $$.component({
     return compile(
       '<div>',
         '<form>',
-          '<input type="text" name="title" $$-value="newTodo.title"/>',
+          '<input type="text" name="title" $$-value="newTodo.title">',
           '<div>',
             this.newTodo.title,
           '</div>',
-          '<input type="checkbox" $$-checked="newTodo.completed"/>',
+          '<input type="checkbox" $$-checked="newTodo.completed">',
           '<div>',
             'completed: ' + this.newTodo.completed,
           '</div>',

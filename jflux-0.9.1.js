@@ -953,8 +953,7 @@ var converters = {
   },
   '$$-style': function ($el, context) {
     var value = utils.grabContextValue(context, $el.attr('$$-style'));
-    var styleString = utils.createStyleString(value);
-    if (styleString) $el.attr('style', styleString);
+    $el.css(value);
   },
   '$$-checked': function ($el, context) {
     var value = utils.grabContextValue(context, $el.attr('$$-checked'));
@@ -978,6 +977,14 @@ var converters = {
       $el.show();
     } else {
       $el.hide();
+    }
+  },
+  '$$-hide': function ($el, context) {
+    var hide = utils.grabContextValue(context, $el.attr('$$-hide'));
+    if (hide) {
+      $el.hide();
+    } else {
+      $el.show();
     }
   },
   '$$-data': function ($el, context) {
@@ -1008,15 +1015,26 @@ module.exports = convertAttributes;
  */
 var dom = require('./../dom.js');
 var convertAttributes = require('./convertAttributes.js');
+var error = require('./../error.js');
 
 var matchers = {
   short:  /<.*\/>/,
   long: /<.*>[\s\S]*<\/.*>/, // [\s\S] matches linebreaks too
   closing: /<\/.*>/,
-  opening: /<.*>/
+  opening: /<.*>/,
+  input: /<input.*>/
 };
 
 var createDomNodeRepresentation = function (arg, context) {
+
+  if (arg === null || arg === undefined) {
+    error.create({
+      source: arg,
+      message: 'compile does not support null or undefined as argument',
+      support: 'make sure you pass a supported type',
+      url: 'https://github.com/christianalfoni/jflux/blob/master/DOCUMENTATION.md#components-compile'
+    });
+  }
 
   // If it is an array, jQuery object or Component
   if (typeof arg === 'object') {
@@ -1025,8 +1043,16 @@ var createDomNodeRepresentation = function (arg, context) {
 
   arg += ''; // Convert to string
 
-  // E.g. "<div/>" or "<div></div>"
-  if (arg.match(matchers.short) || arg.match(matchers.long)) {
+  // INPUT
+  if (arg.match(matchers.input)) {
+
+    return {
+      hasChildren: false,
+      node: convertAttributes(dom.$(arg), context)
+    };
+
+    // E.g. "<div/>" or "<div></div>"
+  } else if (arg.match(matchers.short) || arg.match(matchers.long)) {
 
     return {
       hasChildren: false,
@@ -1039,7 +1065,7 @@ var createDomNodeRepresentation = function (arg, context) {
     return {
       hasChildren: false,
       node: null
-    }
+    };
 
     // E.g. "<div>"
   } else if (arg.match(matchers.opening)) {
@@ -1047,11 +1073,10 @@ var createDomNodeRepresentation = function (arg, context) {
     return {
       hasChildren: true,
       node: convertAttributes(dom.$(arg), context)
-    }
+    };
 
     // E.g. "hello world"
   } else if (typeof arg === 'string') {
-
     return {
       hasChildren: false,
       node: dom.$(dom.document.createTextNode(arg))
@@ -1061,7 +1086,7 @@ var createDomNodeRepresentation = function (arg, context) {
 };
 
 module.exports = createDomNodeRepresentation;
-},{"./../dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./convertAttributes.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/convertAttributes.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/diff.js":[function(require,module,exports){
+},{"./../dom.js":"/Users/christianalfoni/Documents/dev/jflux/src/dom.js","./../error.js":"/Users/christianalfoni/Documents/dev/jflux/src/error.js","./convertAttributes.js":"/Users/christianalfoni/Documents/dev/jflux/src/component/convertAttributes.js"}],"/Users/christianalfoni/Documents/dev/jflux/src/component/diff.js":[function(require,module,exports){
 var dom = require('./../dom.js');
 var Constructor = require('./Constructor.js');
 var addToList = require('./diff/addToList.js');
@@ -1472,7 +1497,7 @@ var run = function () {
   dom.$('body').on('click', 'a', function (event) {
 
     // Only grab it if there is no target attribute
-    if (!event.currentTarget.getAttribute('target')) {
+    if (!event.currentTarget.getAttribute('target') && !event.isDefaultPrevented()) {
       event.preventDefault();
 
       // We have to turn off the onhashchange trigger to avoid triggering the route
@@ -1494,7 +1519,7 @@ var run = function () {
 
   if (config().pushState) {
     window.onpopstate = function () {
-      router.goTo(location.pathname.substr(config().baseUrl.length));
+      router.goBack(location.pathname.substr(config().baseUrl.length));
     };
   } else {
     window.onhashchange = function () {
@@ -1526,33 +1551,35 @@ var exports = {};
 var routes = [];
 
 var initialRouting = true;
-var previousPath = '';
+var previousRoute = '';
 
-exports.triggerRoute = function (route, compiledRoute, params) {
+exports.triggerRoute = function (route, compiledRoute, params, replaceState) {
+
   if (typeof route.callback === 'string') {
-    exports.resolveRoute(route.callback);
+
+    exports.resolveRoute(utils.compileRoute(route.callback, params));
+
   } else if (config().pushState) {
 
-    if (!initialRouting && route.path === previousPath) {
-      window.history.replaceState({}, '', config().baseUrl + compiledRoute);
-    } else {
-      window.history.pushState({}, '', config().baseUrl + compiledRoute);
-      route.callback(params);
-      initialRouting = false;
+    if (!initialRouting && previousRoute !== compiledRoute) {
+      window.history[replaceState ? 'replaceState' : 'pushState']({}, '', config().baseUrl + compiledRoute);
     }
+    initialRouting = false;
+    route.callback(params);
+
   } else {
     location.href = config().baseUrl + '/#' + compiledRoute;
     route.callback(params);
   }
-  previousPath = route.path;
+  previousRoute = compiledRoute;
 };
 
-exports.resolveRoute = function (path) {
+exports.resolveRoute = function (path, replaceState) {
   for (var x = 0; x < routes.length; x++) {
     var route = routes[x];
     if (utils.matchRoute(path, route.path, utils.isParam)) {
       var params = utils.getParams(path, route.path, utils.isParam);
-      return exports.triggerRoute(route, utils.compileRoute(route.path, params), params);
+      return exports.triggerRoute(route, utils.compileRoute(route.path, params), params, replaceState);
     }
   }
   if (routes.length) {
@@ -1575,6 +1602,10 @@ exports.goTo = function (path) {
   dom.$(function () {
     exports.resolveRoute(path);
   });
+};
+
+exports.goBack = function (path) {
+  exports.resolveRoute(path, true);
 };
 
 exports.deferTo = function (path) {
@@ -1879,16 +1910,6 @@ exports.createClassString = function (obj) {
     }
   }
   return classes.join(' ');
-};
-
-exports.createStyleString = function (obj) {
-  var classes = [];
-  for (var prop in obj) {
-    if (obj.hasOwnProperty(prop) && obj[prop]) {
-      classes.push(prop + ':' + obj[prop]);
-    }
-  }
-  return classes.join(';');
 };
 
 exports.extractTypeAndTarget = function (event) {

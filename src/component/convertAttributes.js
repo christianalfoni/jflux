@@ -21,8 +21,7 @@ var converters = {
   },
   '$$-style': function ($el, context) {
     var value = utils.grabContextValue(context, $el.attr('$$-style'));
-    var styleString = utils.createStyleString(value);
-    if (styleString) $el.attr('style', styleString);
+    $el.css(value);
   },
   '$$-checked': function ($el, context) {
     var value = utils.grabContextValue(context, $el.attr('$$-checked'));
@@ -46,6 +45,14 @@ var converters = {
       $el.show();
     } else {
       $el.hide();
+    }
+  },
+  '$$-hide': function ($el, context) {
+    var hide = utils.grabContextValue(context, $el.attr('$$-hide'));
+    if (hide) {
+      $el.hide();
+    } else {
+      $el.show();
     }
   },
   '$$-data': function ($el, context) {

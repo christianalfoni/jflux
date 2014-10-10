@@ -17,7 +17,7 @@ var run = function () {
   dom.$('body').on('click', 'a', function (event) {
 
     // Only grab it if there is no target attribute
-    if (!event.currentTarget.getAttribute('target')) {
+    if (!event.currentTarget.getAttribute('target') && !event.isDefaultPrevented()) {
       event.preventDefault();
 
       // We have to turn off the onhashchange trigger to avoid triggering the route
@@ -39,7 +39,7 @@ var run = function () {
 
   if (config().pushState) {
     window.onpopstate = function () {
-      router.goTo(location.pathname.substr(config().baseUrl.length));
+      router.goBack(location.pathname.substr(config().baseUrl.length));
     };
   } else {
     window.onhashchange = function () {

@@ -21,6 +21,8 @@ $$.route('/', function () {
   $$.render(Home({content: 'slide1'}), 'body');
 });
 
-$$.route('/slide2', function () {
-  $$.render(Home({content: 'slide2'}), 'body');
-});
+$$.route('/slide2', '/slide3');
+
+$$.route('/slide3', function () {
+  $$.render(Home({content: 'slide3'}), 'body');
+})

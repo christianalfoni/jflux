@@ -91,6 +91,14 @@ Please contact me for further guidance.
 
 ### Change log
 
+**0.9.1**
+- Fixed check of "preventDefault" on URL trigger
+- Fixed route comparison
+- Added $$-hide
+- Fixed routing "back" bug
+- Fixed handling of input tag
+- Fixed handling of NULL and UNDEFINED to compile
+
 **0.9.0**
 - Revamped the API to make it feel more like Backbone JS
 - Optimized removal of components
