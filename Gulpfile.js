@@ -73,7 +73,7 @@ gulp.task('deploy', function () {
 
   runBrowserifyTask({
     watch: false,
-    dest: './',
+    dest: './releases/' + package.version,
     uglify: true,
     debug: false,
     name: 'jflux-' + package.version + '.min.js'
@@ -81,7 +81,7 @@ gulp.task('deploy', function () {
 
   runBrowserifyTask({
     watch: false,
-    dest: './',
+    dest: './releases/' + package.version,
     uglify: false,
     debug: false,
     name: 'jflux-' + package.version + '.js'
