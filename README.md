@@ -91,6 +91,12 @@ Please contact me for further guidance.
 
 ### Change log
 
+**0.9.2**
+- Fixed list update bug
+- Fixed compare bug
+- Added possibility to transclude HTML in components
+- Changed $$.fakeState to $$.fakeStore (testing)
+
 **0.9.1**
 - Fixed check of "preventDefault" on URL trigger
 - Fixed route comparison

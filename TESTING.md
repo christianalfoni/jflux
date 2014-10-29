@@ -65,8 +65,8 @@ describe("Toggler()", function () {
 });
 ```
 
-### Faking states
-If you need to fake the exports of a state, use the $$.fakeState method. You have to do this due
+### Faking stores
+If you need to fake the exports of a store, use the $$.fakeStore method. You have to do this due
 to the object being returned has an EventEmitter as prototype.
 ```javascript
 var $$ = require('jflux');
@@ -80,7 +80,7 @@ describe("Toggler()", function () {
     // The value of the key is the exposed object, or function, that you can
     // override
     $$.test('app/Toggler.js', {
-      './AppState.js': $$.fakeState({
+      './AppStore.js': $$.fakeStore({
         isChecked: function () {
           return true;
         }

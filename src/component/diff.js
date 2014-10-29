@@ -28,14 +28,24 @@ var diff = function (renders, initialRenders, node) {
       // If it is a component
     } else if (renders instanceof Constructor) {
 
-      // Grab properties
-      var oldProps = initialRenders[index].props;
-      var newProps = renders.props;
+      // If it is the same type of component, just update it
+      if (renders._description === initialRenders[index]._description) {
 
-      var propsChanged = !utils.deepCompare(oldProps, newProps); // TODO: Create hash instead
-      if (propsChanged) {
-        initialRenders[index].props = newProps;
-        initialRenders[index].update();
+        // Grab properties
+        var oldProps = initialRenders[index].props;
+        var newProps = renders.props;
+
+        var propsChanged = !utils.deepCompare(oldProps, newProps); // TODO: Create hash instead
+        if (propsChanged) {
+          initialRenders[index].props = newProps;
+          initialRenders[index].update();
+        }
+        // If it has changed, initialize the new one and replace it in the DOM
+        // with the old one
+      } else {
+        renders._init();
+        initialRenders[index].$el.replaceWith(renders.$el);
+        initialRenders[index] = renders;
       }
 
       // If it is a text node

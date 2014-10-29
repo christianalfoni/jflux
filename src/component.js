@@ -38,7 +38,7 @@ Constructor.prototype = {
     }
 
     // Compile the renders, add bindings and listeners
-    this.$el = compile(this._renders);
+    this.$el = compile(this._renders, this);
 
     this._addBindings();
     this._addListeners();
@@ -179,10 +179,12 @@ Constructor.prototype = {
   _compiler: function () {
 
     var compilerArgs = Array.prototype.slice.call(arguments, 0);
+    if (compilerArgs.indexOf(this.props.children) >= 0 && this._children.length) {
+      compilerArgs.splice.apply(compilerArgs, [compilerArgs.indexOf(this.props.children), 1].concat(this._children));
+    }
     var initLevel = [];
     var currentLevel = initLevel;
     var traverseArray = [initLevel];
-
     for (var x = 0; x < compilerArgs.length; x++) {
 
       var compilerArg = compilerArgs[x];
@@ -272,8 +274,10 @@ Constructor.prototype = {
 };
 
 module.exports = function (description) {
-  return function (props) {
-    var base = new Constructor(props);
+  return function () {
+    var args = Array.prototype.slice.call(arguments, 0);
+    var props = args.shift();
+    var base = new Constructor(props, args);
     var component = utils.mergeTo(base, description);
     component._description = description;
     return component;

@@ -49,7 +49,9 @@ var MessageStore = $$.store(function () {
 
   return {
     getMessages: function () {
-      return messages;
+      return messages.filter(function (item) {
+        return !!item;
+      });
     }
   };
 

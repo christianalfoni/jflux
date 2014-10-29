@@ -20,7 +20,11 @@ var addToList = function (renders, initialRenders, node) {
     if (initialRendersIds.indexOf(id) === -1 && index >= initialRenders.length) {
 
       // Append to current top node
-      node.append(compile(renders[index]));
+      if (initialRenders.length === 0) {
+        node.append(compile(renders[index]));
+      } else {
+        compile(renders[index]).insertAfter(initialRenders[index - 1][0]);
+      }
 
       // Push it into initial renders list for later handling
       initialRenders.push(renders[index]);

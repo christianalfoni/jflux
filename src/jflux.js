@@ -21,9 +21,9 @@ var exports = {
     store: store,
     test: test,
     immutable: utils.deepClone,
-    fakeState: function (exports) {
-      return this.state(function () {
-        this.exports = exports;
+    fakeStore: function (exports) {
+      return this.store(function () {
+        return exports;
       });
     }
 };

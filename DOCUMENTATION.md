@@ -2,6 +2,8 @@
 
 An easy to use unidirectional component based framework.
 
+You can read more about **testing** here: [TESTING.md](https://github.com/christianalfoni/jflux/blob/master/TESTING.md)
+
 - [API](#api)
   - [jFlux](#jflux)
     - [$$.config](#jflux-config)
@@ -38,6 +40,7 @@ An easy to use unidirectional component based framework.
       - [$$-show](#components-attributes-show)
       - [$$-data](#components-attributes-data)
     - [Composing](#components-composing)
+    - [Transclusion](#components-transclusion)
     - [Listening to UI events](#components-listeningtouievents)
     - [Plugins](#components-plugins)
     - [Updates](#components-updates)
@@ -620,6 +623,43 @@ var List = $$.component({
         Item({label: 'First in list'}),
         items,
       '</ul>'
+    );
+  }
+});
+```
+####<a name="components-transclusion">Transclusion</a>
+You can include dynamic HTML inside components. The HTML defined will run in the context of the component it is included in, not the context from where it is defined. Use the special property `this.props.children` to define where the children should be put.
+
+```javascript
+var Form = $$.component({
+  render: function (compile) {
+    events: {
+      'click :submit': 'submitForm'
+    },
+    submitForm: function (event) {
+      event.preventDefault();
+      $.post(this.props.url);
+    },
+    return compile(
+      '<form>',
+        this.props.children,
+      '</form>'
+    );
+  }
+});
+
+var MyForm = $$.component({
+  render: function (compile) {
+    return compile(
+      Form({
+        url: '/comments',
+        wrapper: {'myWrapper': true}
+      },
+        '<div $$-class="props.wrapper">',
+          '<input type="text" placeholder="Type comment"/>',
+          '<button type="submit">Add comment</button>',
+        '</div>'
+      )
     );
   }
 });

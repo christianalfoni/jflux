@@ -124,7 +124,7 @@ exports.deepCompare = function (a, b) {
     return true;
   };
 
-  if (Array.isArray(a) && Array.isArray(b) && a !== b) {
+  if (Array.isArray(a) && Array.isArray(b) && a !== b && a.length === b.length) {
 
     for (var x = 0; x < a.length; x++) {
       var isSame = compare(a[x], b[x]);
@@ -135,7 +135,13 @@ exports.deepCompare = function (a, b) {
     ;
     return true;
 
-  } else if (exports.isObject(a) && exports.isObject(a) && a !== b) {
+  } else if (exports.isObject(a) && exports.isObject(b) && a !== b) {
+
+    // If number of properties has changed, it has changed, making them not alike
+    if (Object.keys(a).length !== Object.keys(b).length) {
+      return false;
+    }
+
 
     for (var prop in a) {
       if (a.hasOwnProperty(prop)) {
