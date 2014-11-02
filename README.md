@@ -91,6 +91,9 @@ Please contact me for further guidance.
 
 ### Change log
 
+**0.9.3**
+- Fixed diff bug
+
 **0.9.2**
 - Fixed list update bug
 - Fixed compare bug

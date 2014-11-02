@@ -23,7 +23,7 @@ var addToList = function (renders, initialRenders, node) {
       if (initialRenders.length === 0) {
         node.append(compile(renders[index]));
       } else {
-        compile(renders[index]).insertAfter(initialRenders[index - 1][0]);
+        compile(renders[index]).insertAfter(initialRenders[index - 1][0] instanceof Constructor ? initialRenders[index - 1][0].$el : initialRenders[index - 1][0]);
       }
 
       // Push it into initial renders list for later handling
@@ -33,7 +33,7 @@ var addToList = function (renders, initialRenders, node) {
       // squeeze it into place
     } else if (initialRendersIds.indexOf(id) === -1) {
 
-      compile(renders[index]).insertBefore(initialRenders[index][0]);
+      compile(renders[index]).insertBefore(initialRenders[index][0] instanceof Constructor ? initialRenders[index][0].$el : initialRenders[index][0]);
       initialRenders.splice(index, 0, renders[index]);
 
     }
