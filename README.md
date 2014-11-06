@@ -91,6 +91,9 @@ Please contact me for further guidance.
 
 ### Change log
 
+**0.9.4**
+- Fixed diff bug on $$-data
+
 **0.9.3**
 - Fixed diff bug
 

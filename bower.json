@@ -1,6 +1,6 @@
 {
   "name": "jflux",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "main": "src/jflux.js",
   "dependencies": {
     "jquery": ">=2.1.1"
