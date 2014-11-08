@@ -2,18 +2,57 @@ var dom = require('./dom.js');
 
 var exports = {};
 
-exports.deepClone = function (object) {
+exports.deepClone = function (obj) {
+  var copy, tmp, circularValue = '[Circular]', refs = [];
 
-  if (Array.isArray(object)) {
-    return object.map(function (item) {
-      return exports.deepClone(item);
-    });
-  } else if (exports.isObject(object)) {
-    return dom.$.extend(true, {}, object);
-  } else {
-    return object;
+  // object is a false or empty value, or otherwise not an object
+  if (!obj || "object" !== typeof obj) return obj;
+
+  // Handle Date
+  if (obj instanceof Date) {
+    copy = new Date();
+    copy.setTime(obj.getTime());
+    return copy;
   }
 
+  // Handle Array - or array-like items (Buffers)
+  if (obj instanceof Array || obj.length) {
+    
+    refs.push(obj);
+    copy = [];
+    for (var i = 0, len = obj.length; i < len; i++) {
+      if (refs.indexOf(obj[i]) >= 0) {
+        copy[i] = circularValue;
+      } else {
+        copy[i] = exports.deepClone(obj[i]);
+      }
+    }
+    refs.pop();
+    return copy;
+  }
+
+  // Handle Object
+  refs.push(obj);
+  copy = {};
+
+  if (obj instanceof Error) {
+    //raise inherited error properties for the clone
+    copy.name = obj.name;
+    copy.message = obj.message;
+    copy.stack = obj.stack;
+  }
+
+  for (var attr in obj) {
+    if (obj.hasOwnProperty(attr)) {
+      if (refs.indexOf(obj[attr]) >= 0) {
+        copy[attr] = circularValue;
+      } else {
+        copy[attr] = exports.deepClone(obj[attr]);
+      }
+    }
+  }
+  refs.pop();
+  return copy;
 };
 
 exports.isParam = function (part) {

@@ -1,85 +1,78 @@
 define(['jflux', 'actions'], function ($$, actions) {
 
-  return $$.store(function () {
-
-    var todos = [];
-    var filter = {
+  return $$.store({
+    todos: [],
+    filter: {
       completed: true,
       active: true
-    };
-
-    var getTodo = function (todo) {
+    },
+    actions: [
+      actions.addTodo,
+      actions.removeTodo,
+      actions.toggleTodo,
+      actions.updateTodo,
+      actions.toggleAllTodos,
+      actions.filter
+    ],
+    getTodo: function (todo) {
       var date = todo.date;
-      return todos.filter(function (todo) {
+      return this.todos.filter(function (todo) {
         return todo.date === date;
       })[0];
-    };
-
-    this.addTodo = function (title) {
-      todos.push({
+    },
+    addTodo: function (title) {
+      this.todos.push({
         title: title,
         completed: false,
         date: Date.now()
       });
-      this.emit('update');
-    };
-
-    this.removeTodo = function (todo) {
-      var originalTodo = getTodo(todo);
-      todos.splice(todos.indexOf(originalTodo), 1);
-      this.emit('update');
-    };
-
-    this.toggleTodo = function (todo) {
-      var originalTodo = getTodo(todo);
+      this.emitChange(); 
+    },
+    removeTodo: function (todo) {
+      var originalTodo = this.getTodo(todo);
+      this.todos.splice(this.todos.indexOf(originalTodo), 1);
+      this.emitChange();
+    },
+    toggleTodo: function (todo) {
+      var originalTodo = this.getTodo(todo);
       originalTodo.completed = todo.completed;
-      this.emit('update');
-    };
-
-    this.updateTodo = function (todo) {
-      var originalTodo = getTodo(todo);
+      this.emitChange();
+    },
+    updateTodo: function (todo) {
+      var originalTodo = this.getTodo(todo);
       originalTodo.title = todo.title.trim();
       if (!originalTodo.title) {
-        todos.splice(todos.indexOf(originalTodo), 1);
+        this.todos.splice(this.todos.indexOf(originalTodo), 1);
       }
-      this.emit('update');
-    };
-
-    this.toggleAllTodos = function (completed) {
-      todos.forEach(function (todo) {
+      this.emitChange();
+    },
+    toggleAllTodos: function (completed) {
+      this.todos.forEach(function (todo) {
         todo.completed = completed;
       });
-      this.emit('update');
-    };
-
-    this.filter = function (options) {
+      this.emitChange();
+    },
+    filter: function (options) {
       filter = options;
-      this.emit('update');
-    };
-
-    this.listenTo(actions.addTodo, this.addTodo);
-    this.listenTo(actions.removeTodo, this.removeTodo);
-    this.listenTo(actions.toggleTodo, this.toggleTodo);
-    this.listenTo(actions.updateTodo, this.updateTodo);
-    this.listenTo(actions.toggleAllTodos, this.toggleAllTodos);
-    this.listenTo(actions.filter, this.filter);
-
-    return {
+      this.emitChange();
+    },
+    exports: {
       getTodos: function () {
-        return $$.immutable(todos.filter(function (todo) {
+        return this.todos.filter(function (todo) {
           return (filter.completed && todo.completed) || (filter.active && !todo.completed);
-        }));
+        })
       },
       getRemainingCount: function () {
-        return todos.filter(function (todo) {
+        return this.todos.filter(function (todo) {
           return !todo.completed;
-        }).length;
+        }).length;   
       },
       allCompleted: function () {
-        return this.getRemainingCount() === 0;
+        return this.todos.filter(function (todo) {
+          return !todo.completed;
+        }).length === 0;
       }
-    };
-
+    }
   });
 
 });

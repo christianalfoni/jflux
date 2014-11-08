@@ -3,7 +3,7 @@ define(['jflux', 'AppStore'], function ($$, AppStore) {
   return $$.component({
 
    init: function () {
-     this.listenTo(AppStore, 'update', this.update);
+     this.listenToChange(AppStore, this.update);
    },
     render: function (compile) {
 

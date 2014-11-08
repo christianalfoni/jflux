@@ -8,15 +8,24 @@
 
 var EventEmitter = require('./EventEmitter.js');
 var error = require('./error.js');
+var utils = require('./utils.js');
 
-var createActionFunction = function () {
+var createActionFunction = function (actionName) {
 
   // Create the action function
   var fn = function () {
 
     // Grab all the arguments and convert to array
-    var args = Array.prototype.slice.call(arguments, 0);
+    var args = utils.deepClone(Array.prototype.slice.call(arguments, 0));
 
+    if (!fn._events) {
+      return error.create({
+        source: fn.handlerName,
+        message: 'You are triggering an action that nobody listens to',
+        support: 'Remember to add actions to your stores',
+        url: 'https://github.com/christianalfoni/jflux/blob/master/DOCUMENTATION.md#jflux-store'
+      });
+    }
     // Merge arguments array with "trigger", which is the
     // event that will be triggered, passing the original arguments
     // as arguments to the "trigger" event
@@ -33,6 +42,9 @@ var createActionFunction = function () {
     }
   }
 
+  // Add handlerName
+  fn.handlerName = actionName;
+
   return fn;
 
 };
@@ -42,11 +54,9 @@ var action = function () {
   if (Array.isArray(arguments[0])) {
     var actionMap = {};
     arguments[0].forEach(function (actionName) {
-      actionMap[actionName] = createActionFunction();
+      actionMap[actionName] = createActionFunction(actionName);
     });
     return actionMap;
-  } else if (!arguments.length) {
-    return createActionFunction();
   }
 
   error.create({

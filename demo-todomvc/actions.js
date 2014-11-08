@@ -1,6 +1,6 @@
 define(['jflux'], function ($$) {
 
-  var actions = $$.action([
+  var actions = $$.actions([
     'addTodo',
     'removeTodo',
     'toggleTodo',

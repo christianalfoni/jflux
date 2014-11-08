@@ -85,7 +85,6 @@ Constructor.prototype = {
     var component = this;
     Object.keys(this.bindings).forEach(function (binding) {
 
-
       var $el = binding ? component.$(binding) : component.$el;
 
       if ($el.is(':checkbox')) {
@@ -93,7 +92,7 @@ Constructor.prototype = {
         $el.on('change', function () {
           var grabObject = utils.createGrabObject(component, component.bindings[binding]);
           grabObject.context[grabObject.prop] = $el.is(':checked');
-          component.update();
+          $el.trigger('$$-change');
         });
 
       } else {
@@ -108,7 +107,7 @@ Constructor.prototype = {
             setTimeout(function () {
               var grabObject = utils.createGrabObject(component, component.bindings[binding]);
               grabObject.context[grabObject.prop] = $el.val();
-              component.update();
+              $el.trigger('$$-change');
             }, 0);
 
           }
@@ -235,6 +234,9 @@ Constructor.prototype = {
     return compile(
       '<div></div>'
     );
+  },
+  listenToChange: function (target, cb) {
+    this.listenTo(target, 'change', cb);
   },
   listenTo: function (target, type, cb) {
 

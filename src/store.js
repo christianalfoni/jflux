@@ -1,46 +1,75 @@
 var EventEmitter = require('./EventEmitter.js');
 var utils = require('./utils.js');
 var error = require('./error.js');
-/*
- *  State() takes a name and a constructor
- *  and creates a state object that can listen
- *  to actions and emit events themselves
- */
-var store = function (constr) {
-  var exportsPrototype = Object.create(EventEmitter.prototype);
-  var base = function () {};
-  base.prototype = store.prototype;
-  var newStore = new base();
-  var exports = constr.call(newStore);
-  if (!exports) {
-    error.create({
-      source: exports,
-      message: 'Missing exported methods from store',
-      support: 'Be sure to return an object with GETTER methods from your store',
-      url: '' // TODO: Add store url
-    })
+
+function mergeStore (mixins, source) {
+
+  source.actions = source.actions || [];
+  source.exports = source.exports || {};
+
+  if (mixins && Array.isArray(mixins)) {
+
+    // Merge mixins and state
+    mixins.forEach(function (mixin) {
+      Object.keys(mixin).forEach(function (key) {
+
+        switch(key) {
+          case 'mixins':
+            return mergeStore(mixin.mixins, mixin);
+            break;
+          case 'actions':
+            source.actions = source.actions.concat(mixin.actions);
+            break;
+          case 'exports':
+            Object.keys(mixin.exports).forEach(function (key) {
+              source.exports[key] = mixin.exports[key];
+            });
+            break;
+          default:
+            if (source[key]) {
+              throw new Error('The property: ' + key + ', already exists. Can not merge mixin with keys: ' + Object.keys(mixin).join(', '));
+            }
+            source[key] = mixin[key];
+        }
+
+      });
+    });
+
   }
-  newStore._exports = utils.mergeTo(exportsPrototype, exports);
-  return newStore._exports;
+
+  var exports = Object.create(EventEmitter.prototype);
+  var listeners = [];
+
+  source.emitChange = function () {
+    exports.emit('change');
+  };
+
+  source.emit = function () {
+    exports.emit.apply(exports, arguments);
+  };
+
+  // Register actions
+  source.actions.forEach(function (action) {
+    if (!action || !action.handlerName) {
+      throw new Error('This is not an action ' + action);
+    }
+    if (!source[action.handlerName]) {
+      throw new Error('There is no handler for action: ' + action);
+    }
+    action.on('trigger', source[action.handlerName].bind(source));
+  });
+
+  // Register exports
+  Object.keys(source.exports).forEach(function (key) {
+    exports[key] = function () {
+      return utils.deepClone(source.exports[key].apply(source, arguments));
+    };
+  });
+
+  return exports;
+
 };
 
-/*
- *  Set EventEmitter as prototype so that components
- *  can listen to the state
- */
-store.prototype = {
-
-  /*
-   * listenTo() binds the passed function to
-   * the state object itself
-   */
-  listenTo: function (action, cb) {
-    this._listeners = this._listeners || [];
-    action.on('trigger', cb.bind(this));
-  },
-  emit: function () {
-    this._exports.emit.apply(this._exports, arguments);
-  }
-};
-
-module.exports = store;
+module.exports = function (definition) {
+  return mergeStore(definition.mixins, definition);
+};;

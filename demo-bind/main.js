@@ -6,6 +6,10 @@ var BindedComponent = $$.component({
     title: '',
     completed: false
   },
+  events: {
+    '$$-change :text': 'update',
+    '$$-change :checkbox': 'update'
+  },
   bindings: {
     ':text': 'newTodo.title',
     ':checkbox': 'newTodo.completed'

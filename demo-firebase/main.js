@@ -1,60 +1,54 @@
 /*
  * ACTIONS
  */
-var actions = $$.action(['addMessage']);
+var actions = $$.actions(['connect', 'addMessage']);
 
 /*
  * STORE
  */
-var MessageStore = $$.store(function () {
-
-  var messages = [];
-  
-  // Connecting to Firebase
-  var db = new Firebase('https://klsyfflspoi.firebaseio-demo.com/messages');
-
-  // Creating a view to only show last 10 messages
-  var view = db.limit(10);
-  
-  // Firebase will trigger this event, giving the last
-  // 10 messages at any time. The messages are a hash,
-  // so we have to convert them to an array, sorting by date
-  view.on('value', function (value) {
-    messages = value.val() || {};
-    messages = Object.keys(messages).map(function (id) {
-      var message = messages[id];
-      message.id = id;
-      return message;
-    }).sort(function (a, b) {
-      if (a.date > b.date) {
-        return -1;
-      } else {
-        return 1;
-      }
-    });
-    this.emit('update');
-  }.bind(this));
-
-  this.addNewMessage = function (text) {
+var MessageStore = $$.store({
+  messages: [],
+  db: null, 
+  actions: [
+    actions.connect,
+    actions.addMessage
+  ],
+  connect: function () {
+    var view;
+    this.db = new Firebase('https://klsyfflspoi.firebaseio-demo.com/messages');
+    view = this.db.limit(10);
+    view.on('value', function (value) {
+      var serverMessages = value.val() || [];
+      this.messages = Object.keys(serverMessages).map(function (id) {
+        var message = serverMessages[id];
+        message.id = id;
+        return message;
+      }.bind(this)).sort(function (a, b) {
+        if (a.date > b.date) {
+          return -1;
+        } else {
+          return 1;
+        }
+      });
+      this.emitChange();
+    }.bind(this));
+  },
+  addMessage: function (text) {
     text = text.trim();
     if (text) {
-      db.push({
+      this.db.push({
         date: Date.now(),
         text: text
       });
     }
-  };
-
-  this.listenTo(actions.addMessage, this.addNewMessage);
-
-  return {
+  },
+  exports: {
     getMessages: function () {
-      return messages.filter(function (item) {
+      return this.messages.filter(function (item) {
         return !!item;
       });
     }
-  };
-
+  }
 });
 
 /*
@@ -70,7 +64,7 @@ var MessagesList = $$.component({
     ':text': 'message'
   },
   init: function () {
-    this.listenTo(MessageStore, 'update', this.update);
+    this.listenToChange(MessageStore, this.update);
   },
   addMessage: function (event) {
     event.preventDefault();
@@ -110,5 +104,6 @@ $$.config({
 });
 
 $$.route('/', function () {
+  actions.connect();
   $$.render(MessagesList(), 'body');
 });

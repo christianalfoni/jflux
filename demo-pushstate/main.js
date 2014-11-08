@@ -24,5 +24,5 @@ $$.route('/', function () {
 $$.route('/slide2', '/slide3');
 
 $$.route('/slide3', function () {
-  $$.render(Home({content: 'slide3'}), 'body');
+  $$.render(Home({content: 'slide 2 redirected to slide3'}), 'body');
 })

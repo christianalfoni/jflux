@@ -6,7 +6,7 @@ define(['jflux', 'AppStore', 'actions', 'components/Todo'], function ($$, AppSto
       'change #toggle-all': 'toggleAll'
     },
     init: function () {
-      this.listenTo(AppStore, 'update', this.update);
+      this.listenToChange(AppStore, this.update);
     },
     toggleAll: function (event) {
       var isChecked = $(event.currentTarget).is(':checked');

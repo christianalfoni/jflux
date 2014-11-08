@@ -1,21 +1,23 @@
 /*
  *  ACTIONS
  */
-var actions = $$.action([
+var actions = $$.actions([
   'sort',
-  'filter'
-  ]);
+  'changeFilter'
+]);
 
 /*
  *  STORE
  */
-var ListStore = $$.store(function () {
-
-  var list = getNames();
-  var filter = '';
-
-  this.sort = function (increasing) {
-    list.sort(function (a, b) {
+var ListStore = $$.store({
+  list: getNames(),
+  filter: '',
+  actions: [
+    actions.sort,
+    actions.changeFilter
+  ],
+  sort: function (increasing) {
+    this.list.sort(function (a, b) {
       if (increasing) {
         if(a.firstName.toLowerCase() < b.firstName.toLowerCase()) return -1;
         if(a.firstName.toLowerCase() > b.firstName.toLowerCase()) return 1;
@@ -26,29 +28,26 @@ var ListStore = $$.store(function () {
         return 0;
       }
     });
-    this.emit('update');
-  };
-
-  this.setFilter = function (newFilter) {
-    filter = newFilter;
-    this.emit('update');
-  };
-
-  this.listenTo(actions.sort, this.sort);
-  this.listenTo(actions.filter, this.setFilter);
-
-  return {
-    getList: function () {
+    this.emitChange();
+  },
+  changeFilter: function (newFilter) {
+    this.filter = newFilter;
+    this.emitChange();
+  },
+  exports: {
+    getList: function () {
+      var filter = this.filter;
       if (filter) {
-        return list.filter(function (person) {
+        return this.list.filter(function (person) {
           return person.firstName.toLowerCase().substr(0, filter.length) === filter.toLowerCase();
         });
       } else {
-        return list;
+        return this.list;
       }
     }
-  };
+  }
 });
+
 
 /*
  *  COMPONENT
@@ -64,7 +63,9 @@ var List = $$.component({
     ':text': 'filterValue'
   },
   init: function () {
-    this.listenTo(ListStore, 'update', this.update);
+    this.listenToChange(ListStore, function () {
+      this.update();
+    }.bind(this));
   },
   sortIncreasing: function () {
     actions.sort(true);
@@ -73,7 +74,7 @@ var List = $$.component({
     actions.sort(false);
   },
   filter: function () {
-    actions.filter(this.filterValue);
+    actions.changeFilter(this.filterValue);
   },
   compileNames: function (compile) {
     return compile(
@@ -83,7 +84,8 @@ var List = $$.component({
     )
   },
   render: function (compile) {
-  var list = this.map(ListStore.getList(), this.compileNames);
+    console.log('render');
+    var list = this.map(ListStore.getList(), this.compileNames);
     return compile(
       '<div>',
         '<button id="sort-inc">Sort inc</button>',

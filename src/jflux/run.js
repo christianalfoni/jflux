@@ -43,7 +43,11 @@ var run = function () {
     };
   } else {
     window.onhashchange = function () {
-      router.goTo(location.hash.substr(1));
+      if (location.hash) {
+        router.goTo(location.hash.substr(1));
+      } else {
+        window.history.back(); // We are back from /# and want to continue once more
+      }
     };
   }
 

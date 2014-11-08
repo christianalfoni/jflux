@@ -17,13 +17,12 @@ var exports = {
     path: path,
     component: component,
     route: router.route,
-    action: action,
+    actions: action,
     store: store,
     test: test,
-    immutable: utils.deepClone,
     fakeStore: function (exports) {
-      return this.store(function () {
-        return exports;
+      return this.store({
+        exports: exports
       });
     }
 };

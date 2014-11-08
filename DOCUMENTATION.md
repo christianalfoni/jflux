@@ -8,22 +8,21 @@ You can read more about **testing** here: [TESTING.md](https://github.com/christ
   - [jFlux](#jflux)
     - [$$.config](#jflux-config)
     - [$$.component](#jflux-component)
-    - [$$.action](#jflux-action)
-    - [$$.state](#jflux-state)
+    - [$$.actions](#jflux-actions)
+    - [$$.store](#jflux-store)
     - [$$.route](#jflux-route)
     - [$$.render](#jflux-render)
     - [$$.run](#jflux-run)
     - [$$.path](#jflux-path)
-    - [$$.immutable](#jflux-immutable)
   - [Actions](#actions)
     - [Create actions](#actions-createactions)
-    - [Listening to actions](#actions-listeningtoactions)
   - [Store](#store)
     - [Create states](#store-createstates)
-    - [State mutators](#store-statemutators)
     - [Listening to actions](#store-listeningtoactions)
-    - [Exports](#store-exports)
+    - [State handler](#store-statehandlers)
+    - [Emit change](#store-emitchange)
     - [Emit](#store-emit)
+    - [Exports](#store-exports)
   - [Components](#components)
     - [Create a component](#components-createacomponent)
     - [Compile](#components-compile)
@@ -83,12 +82,10 @@ $$.config({
 
 });
 ```
-####<a name="jflux-action">$$.action([array])</a>
-Returns a single action or a map of actions based on not passing any arguments, or passing an
-array of action names. Please go to [Actions](#actions) to read more about the action API.
+####<a name="jflux-actions">$$.actions([string])</a>
+Returns a map of actions. Please go to [Actions](#actions) to read more about the action API.
 ```javascript
-var myAction = $$.action();
-var myActions = $$.action([
+var myActions = $$.actions([
   'action1',
   'action2',
   'action3'
@@ -175,49 +172,15 @@ is actually reading the functionality of your application.
 
 ####<a name="actions-createactions">Create actions</a>
 ```javascript
-// Returns a function that will trigger the action when called
-var addTodo = $$.action();
-
-// Trigger action with any number of arguments
-addTodo({title: 'foo'});
-
 // Create a map of actions
-var actions = $$.action([
+var actions = $$.actions([
   'addTodo',
-  'removeTodo',
-  'editTodo'
+  'filter'
 ]);
 actions.addTodo({title: 'foo'});
-actions.removeTodo(todo);
-actions.editTodo(todo, 'newTitle');
-```
-
-####<a name="actions-listeningtoactions">Listening to actions</a>
-Only stores created will be able to listen to actions, do state changes and
-notify about updates to listening components.
-```javascript
-var AppStore = $$.store(function () {
-
-  // A state
-  var todos = [];
-
-  // A state mutator
-  this.addTodo = function (todo) {
-    todos.push(todo);
-    this.emit('update');
-  };
-
-  // Listen to an action
-  this.listenTo(actions.addTodo, this.addTodo);
-
-  // Export methods that components can use to get
-  // state information
-  return {
-    getTodos: function () {
-      return todos;
-    }
-  };
-
+actions.filter({
+  completed: true,
+  active: true
 });
 ```
 
@@ -226,142 +189,117 @@ Store objects holds state of your application. You may only have on "AppStore" o
 multiple store objects that will handle different types of state in your application.
 
 ####<a name="store-creatingstates">Creating stores</a>
-Your state is contained inside one or multiple store objects. The states are
-normally defined by declaring a variable.
+Your state is contained inside one or multiple store objects. The states are defined
+as properties of a store.
 ```javascript
-var AppStore = $$.store(function () {
-
-  // A todos list state
-  var todos = [];
-
-  // A filter state
-  var filter = {
+var AppStore = $$.store({
+  todos: [],
+  filter: {
     completed: true,
     active: true
-  };
-
+  }
 });
 ```
 
-####<a name="store-statemutators">State mutators</a>
-State mutators are normally triggered by an action listener and will change
-declared variables.
-```javascript
-var AppStore = $$.store(function () {
-
-  var todos = [];
-  var filter = {
-    completed: true,
-    active: true
-  };
-
-  // The mutator use data passed to mutate
-  // a state. Then it emits an event to inform
-  // listening components about the update
-  this.addTodo = function (todo) {
-    todos.push(todo);
-    this.emit('update');
-  };
-
-
-  this.filter = function (filterOptions) {
-    filter = filterOptions;
-    this.emit('update');
-  };
-
-});
-```
 ####<a name="store-listeningtoactions">Listening to actions</a>
-A state object in jFlux listens to actions and trigger their
-state mutators.
+A store in jFlux can listen to actions and trigger their state handlers. The name of an action maps directly to a handler with the same name, as you can see on next example.
 ```javascript
-var AppStore = $$.store(function () {
-
-  var todos = [];
-  var filter = {
+var AppStore = $$.store({
+  todos: [],
+  filter: {
     completed: true,
     active: true
-  };
+  },
+  actions: [
+    actions.addTodo,
+    actions.filter
+  ]
+});
+```
 
-  this.addTodo = function (todo) {
-    todos.push(todo);
-    this.emit('update');
-  };
+####<a name="store-statehandlers">State handlers</a>
+State handlers are normally triggered by an action and will change
+declared state properties on the store. Arguments passed with an action call is cloned. This prevents f.ex. an object passed with an action to later be mutated and reflected in the store.
+```javascript
+var AppStore = $$.store({
+  todos: [],
+  filter: {
+    completed: true,
+    active: true
+  },
+  addTodo: function (todo) {
+    this.todos.push(todo);
+  },
+  filter: function (filterOptions) {
+    this.filter = filterOptions;
+  }
+});
+```
 
-  this.filter = function (filterOptions) {
-    filter = filterOptions;
-    this.emit('update');
-  };
+####<a name="store-emitchange">Emit change</a>
+When the state of the store has been mutated you want to let listening components about the change. By calling **emitChange** on a store, listening components are notified that a change has occured.
+```javascript
+var AppStore = $$.store({
+  todos: [],
+  filter: {
+    completed: true,
+    active: true
+  },
+  addTodo: function (todo) {
+    this.todos.push(todo);
+    this.emitChange();
+  },
+  filter: function (filterOptions) {
+    this.filter = filterOptions;
+    this.emitChange();
+  }
+});
+```
 
-  // Listen to the function that is used to trigger
-  // the action
-  this.listenTo(actions.addTodo, this.addTodo);
-  this.listenTo(actions.filter, this.filter);
-
+####<a name="store-emit">Emit</a>
+There are situations when you want to notify components about a specific state change, not just reflect existing state in a store. This would typically be triggering transitions in a compoenent, trigger animations or just basically react to a state change, not reflect the value of it.
+```javascript
+var AppStore = $$.store({
+  todos: [],
+  filter: {
+    completed: true,
+    active: true
+  },
+  addTodo: function (todo) {
+    this.todos.push(todo);
+    this.emitChange();
+    this.emit('todo:added'); // Trigger a css background color fader on the new todo
+  },
+  filter: function (filterOptions) {
+    this.filter = filterOptions;
+    this.emitChange();
+  }
 });
 ```
 
 ####<a name="store-exports">Exports</a>
 Components will need to extract the states from the store. This is done
-by returning an object with methods from the store. These methods should only be "getters", not "setters".
-State change is only done by actions.
+by creating an exports object  with methods from. These methods should only be "getters", not "setters". When a value is returned from an export method it will be cloned to avoid mutation in the store. The method itself is bound to the store.
 ```javascript
-var AppStore = $$.store(function () {
-
-  var todos = [];
-  var filter = {
+var AppStore = $$.store(  todos: [],
+  filter: {
     completed: true,
     active: true
-  };
-
-  this.addTodo = function (todo) {
-    todos.push(todo);
-    this.emit('update');
-  };
-
-  this.filter = function (filterOptions) {
-    filter = filterOptions;
-    this.emit('update');
-  };
-
-  this.listenTo(actions.addTodo, this.addTodo);
-  this.listenTo(actions.filter, this.filter);
-
-  // We define a method that will be available to components.
-  // It returns a list of todos based on the current state of
-  // the filter. We make sure that the state returned is immutable
-  return = {
+  },
+  addTodo: function (todo) {
+    this.todos.push(todo);
+    this.emitChange();
+    this.emit('todo:added'); // Trigger a css background color fader on the new todo
+  },
+  filter: function (filterOptions) {
+    this.filter = filterOptions;
+    this.emitChange();
+  },
+  exports: {
     getTodos: function () {
-      return $$.immutable(todos.filter(function (todo) {
-        return (filter.completed && todo.completed) || (filter.active && !todo.completed);
-      }));
+      return this.todos;
     }
-  };
-
-});
-```
-
-####<a name="store-emit">Emit</a>
-There might be situations where you want to notify components about a specific state change. That is useful for state
- updates that happens very often. Look at [Listening to state changes](#components-listeningtostatechanges), for more
-  information.
-```javascript
-var AppStore = $$.store(function () {
-
-  var duration = 0;
-
-  var state = this;
-  setInterval(function () {
-    duration += 100;
-    state.emit('duration:update');
-  }, 100);
-
-  return {
-    getDuration: function () {
-      return duration;
-    }
-  };
-
+  }
 });
 ```
 
@@ -736,36 +674,19 @@ var MyComponent = $$.component({
 
 ####<a name="components-listeningtostatechanges">Listening to state changes</a>
 Components listens to state changes in stores. They do this by using the `listenTo` method.
-When the store triggers an 'update' event the component can f.ex. run the update method to
-update the component.
+There are two types of listeners. One that listens to the general 'change' event, and one
+that listens to any specific events you emit.
 
 ```javascript
 var MyComponent = $$.component({
   init: function () {
-    this.listenTo(AppStore, 'update', this.update);
+    this.listenToChange(AppStore, this.update);
+    this.listenTo(AppStore, 'todo:added', this.update);
   },
   render: function (compile) {
     return compile(
       '<h1>',
-        AppStore.getTitle(),
-      '</h1>'
-    );
-  }
-});
-```
-
-You can also listen to specific events emitted from a store. This is useful when you need to notify a component very
-often and do not want to emit a generic 'update' event
-
-```javascript
-var MyComponent = $$.component({
-  init: function () {
-    this.listenTo(AppStore, 'duration:update', this.update);
-  },
-  render: function (compile) {
-    return compile(
-      '<h1>',
-        AppStore.getDuration(),
+        AppStore.getTodos().length,
       '</h1>'
     );
   }
@@ -773,9 +694,7 @@ var MyComponent = $$.component({
 ```
 
 ####<a name="components-bindingtoinputs">Binding to inputs</a>
-Sometimes you want to bind to inputs. The inputs might affect a state in your component and you need it to update
-automatically. Meet bindings, they will update your component on input change:
-
+Sometimes you want to bind to inputs. This makes it easier for you to transfer values from an element in the DOM to a state in your component. If you need to update your component as the binding listen to the special `$$-change` event.
 ```javascript
 var MyComponent = $$.component({
   item: {

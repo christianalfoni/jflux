@@ -15,10 +15,11 @@ Clone the repo and run `python -m SimpleHTTPServer 3000` in your terminal at the
 ### The background
 Please read the following post if you are interested in the background of this project: [jQuery as a framework, could that work?](http://christianalfoni.github.io/javascript/2014/09/08/jquery-as-a-framework-could-that-work.html)
 
+jFlux is being used to build [www.jsfridge.com](http://www.jsfridge.com). It is a complex web
+application that has challenged jFlux and its capabilities.
+
 ### Contribute
-jFlux is currently being used to build the BETA of [www.jsfridge.com](http://www.jsfridge.com). It is a complex web
-application that will challenge jFlux and its capabilities. Currently this is running a long quite nicely and the API
-is starting to come together. What jFlux now needs is **error messages** and **tests**.
+If you want to contribute to jFlux it does need testing. Please follow this discription to create tests.
 
 #### Error messages
 jFlux has a module that produces error messages. Import that module and pass an error in the following format:
@@ -90,6 +91,14 @@ describe("isParam()", function () {
 Please contact me for further guidance.
 
 ### Change log
+
+**1.0.0**
+- Changes syntax of stores to reflect [flux-react](https://github.com/christianalfoni/flux-react) and [flux-angular](https://github.com/christianalfoni/flux-angular)
+- Changed $$.action to $$.actions, since you always want to define multiple actions
+- Removed $$.immutable, this is automatically done on all exports and action calls
+- Support circular deps when cloning
+- Binding does not update the component, listen to $$-change event to update the component on binding updates (performance)
+- Fixed back button on hash urls
 
 **0.9.4**
 - Fixed diff bug on $$-data
