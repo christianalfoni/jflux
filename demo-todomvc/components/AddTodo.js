@@ -9,7 +9,6 @@ define(['jflux', 'actions'], function ($$, actions) {
       ':text': 'title'
     },
     title: '',
-
     addTodo: function (event) {
       event.preventDefault();
       actions.addTodo(this.title);

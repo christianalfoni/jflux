@@ -7,17 +7,16 @@ var Home = $$.component({
 
   render: function (compile) {
     return compile(
-      '<p>',
-        this.props.content,
-      '</p>',
-      '<a href="/slide2">Slide2</a>'
+      '<div>',
+        '<p>' + this.props.content + '</p>',
+        '<a href="/slide2">Slide2</a>',
+      '</div>'
     );
   }
 
 });
 
 $$.route('/', function () {
-  console.log('rendering again!');
   $$.render(Home({content: 'slide1'}), 'body');
 });
 

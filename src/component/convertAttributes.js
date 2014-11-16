@@ -10,66 +10,75 @@ var dom = require('./../dom.js');
 var utils = require('./../utils.js');
 
 var converters = {
-  '$$-id': function ($el, context) {
-    var value = utils.grabContextValue(context, $el.attr('$$-id'));
-    $el.attr('id', value);
+  '$$-id': function (node, value, props, context) {
+    props['id'] = utils.grabContextValue(context, value);
+    delete props.attributes['$$-id'];
   },
-  '$$-class': function ($el, context) {
-    var value = utils.grabContextValue(context, $el.attr('$$-class'));
-    var classString = utils.createClassString(value);
-    if (classString) $el.attr('class', classString);
+  '$$-class': function (node, value, props, context) {
+    var attrValue = utils.grabContextValue(context, value);
+    var classString = utils.createClassString(attrValue);
+    if (classString) props['className'] = classString;
+    delete props.attributes['$$-class'];
   },
-  '$$-style': function ($el, context) {
-    var value = utils.grabContextValue(context, $el.attr('$$-style'));
-    $el.css(value);
+  '$$-style': function (node, value, props, context) {
+    props['style'] = utils.grabContextValue(context, value);
+    delete props.attributes['$$-style'];
   },
-  '$$-checked': function ($el, context) {
-    var value = utils.grabContextValue(context, $el.attr('$$-checked'));
-    $el.attr('checked', value);
+  '$$-checked': function (node, value, props, context) {
+    props['checked'] = utils.grabContextValue(context, value);
+    delete props.attributes['$$-checked'];
   },
-  '$$-disabled': function ($el, context) {
-    var value = utils.grabContextValue(context, $el.attr('$$-disabled'));
-    $el.attr('disabled', value);
+  '$$-disabled': function (node, value, props, context) {
+    props['disabled'] = utils.grabContextValue(context, value);
+    delete props.attributes['$$-disabled'];
   },
-  '$$-value': function ($el, context) {
-    var value = utils.grabContextValue(context, $el.attr('$$-value'));
-    $el.val(value);
+  '$$-value': function (node, value, props, context) {
+    props['value'] = utils.grabContextValue(context, value);
+    delete props.attributes['$$-value'];
   },
-  '$$-href': function ($el, context) {
-    var value = utils.grabContextValue(context, $el.attr('$$-href'));
-    $el.attr('href', value);
+  '$$-href': function (name, value, props, context) {
+    props['href'] = utils.grabContextValue(context, value);
+    delete props.attributes['$$-href'];
   },
-  '$$-show': function ($el, context) {
-    var show = utils.grabContextValue(context, $el.attr('$$-show'));
+  '$$-show': function (node, value, props, context) {
+    var show = utils.grabContextValue(context, value);
+    props.style = props.style || {};
     if (show) {
-      $el.show();
+      props.style.display = window.getComputedStyle(node, null).display;
     } else {
-      $el.hide();
+      props.style.display = 'none';
     }
+    delete props.attributes['$$-show'];
   },
-  '$$-hide': function ($el, context) {
-    var hide = utils.grabContextValue(context, $el.attr('$$-hide'));
+  '$$-hide': function (node, value, props, context) {
+    var hide = utils.grabContextValue(context, value);
+    props.style  = props.style || {};
     if (hide) {
-      $el.hide();
+      props.style.display = 'none';
     } else {
-      $el.show();
+      props.style.display = window.getComputedStyle(node, null).display;
     }
+    delete props.attributes['$$-hide'];
   },
-  '$$-data': function ($el, context) {
-    $el.data('data', utils.grabContextValue(context, $el.attr('$$-data')));
+  '$$-key': function (node, value, props, context) {
+    props['key'] = utils.grabContextValue(context, value);
+    delete props.attributes['$$-key'];
+  },
+  '$$-data': function (node, value, props, context) {
+    props.attributes['data-data'] = JSON.stringify(utils.grabContextValue(context, value));
+    delete props.attributes['$$-data'];
   }
 };
 
-var convertAttributes = function ($el, context) {
+var convertAttributes = function (props, node, context) {
 
-  Object.keys(converters).forEach(function (attr) {
-    if ($el.attr(attr)) {
-      converters[attr]($el, context);
-      $el.removeAttr(attr);
+  Object.keys(node.attributes).forEach(function (attr) {
+    var name = node.attributes[attr].nodeName;
+    if (name && converters[name]) {
+      var value = node.attributes[attr].nodeValue;
+      converters[name](node, value, props, context);
     }
   });
-
-  return $el;
 
 };
 

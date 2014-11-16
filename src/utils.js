@@ -2,11 +2,29 @@ var dom = require('./dom.js');
 
 var exports = {};
 
+var convertAttributes = function (string, context) {
+  string += '';
+  var matches = string.match(/(?:\$\$-.*?="[^"]*")/g);
+  if (matches) {
+    matches.forEach(function (match) {
+      var value = match.match(/"([^""]+)"/)[1];
+      var newMatch = match.replace('"' + value + '"', '{' + JSON.stringify(context[value]) + '}');
+      string = string.replace(match, '$' + newMatch)
+    });
+  }
+  return string;
+};
+
+exports.convertArgsToString = function () {
+ 
+  return html;
+};
+
 exports.deepClone = function (obj) {
   var copy, tmp, circularValue = '[Circular]', refs = [];
 
   // object is a false or empty value, or otherwise not an object
-  if (!obj || "object" !== typeof obj) return obj;
+  if (!obj || "object" !== typeof obj || obj instanceof ArrayBuffer || obj instanceof Blob || obj instanceof File) return obj;
 
   // Handle Date
   if (obj instanceof Date) {
@@ -149,7 +167,7 @@ exports.isObject = function (obj) {
   return typeof obj === 'object' && obj !== null && !Array.isArray(obj);
 };
 
-exports.deepCompare = function (a, b) {
+exports.deepCompare = function (a, b, except) {
 
   var compare = function (valueA, valueB) {
     if (Array.isArray(valueA) || exports.isObject(valueA)) {
@@ -171,7 +189,6 @@ exports.deepCompare = function (a, b) {
         return false;
       }
     }
-    ;
     return true;
 
   } else if (exports.isObject(a) && exports.isObject(b) && a !== b) {
@@ -236,5 +253,20 @@ exports.extractTypeAndTarget = function (event) {
     target: eventArray[1]
   };
 };
+
+exports.convertStyleToMap = function (styleValue) {
+
+  var styleMap = {};
+  var styles = styleValue.split(';');
+  styles.forEach(function (style) {
+    if (!style) {
+      return;
+    }
+    var styleValues = style.split(':');
+    styleMap[styleValues[0]] = styleValues[1].trim();
+  });
+  return styleMap;
+
+}
 
 module.exports = exports;

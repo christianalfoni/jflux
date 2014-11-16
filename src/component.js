@@ -5,17 +5,19 @@
  * ====================================================================================
  */
 
-var dom = require('./dom.js');
-var utils = require('./utils.js');
-var createDomNodeRepresentation = require('./component/createDomNodeRepresentation.js');
-var diff = require('./component/diff.js');
-var compile = require('./component/compile.js');
-var Constructor = require('./component/Constructor.js');
-var error = require('./error.js');
+ var dom = require('./dom.js');
+ var utils = require('./utils.js');
+ var Constructor = require('./component/Constructor.js');
+ var error = require('./error.js');
+ var convertAttributes = require('./component/convertAttributes.js');
+ var h = require('virtual-dom/h');
+ var diff = require('virtual-dom/diff');
+ var patch = require('virtual-dom/patch');
+ var createElement = require('virtual-dom/create-element');
+ var updateComponents = require('./component/updateComponents.js');
+ var exports = {};
 
-var exports = {};
-
-Constructor.prototype = {
+ Constructor.prototype = {
   constructor: Constructor,
 
   // Runs when the component is added to the DOM by $$.render
@@ -26,9 +28,9 @@ Constructor.prototype = {
     }
 
     // Render the component and set it as the current render and the initial render
-    this._renders = this._initialRenders = this.render(this._compiler.bind(this));
+    this._VTree = this.render(this._compiler.bind(this));
 
-    if (!this._renders) {
+    if (!this._VTree) {
       error.create({
         source: this._renders,
         message: 'Missing compiled DOM representation',
@@ -38,7 +40,15 @@ Constructor.prototype = {
     }
 
     // Compile the renders, add bindings and listeners
-    this.$el = compile(this._renders, this);
+    var el = createElement(this._VTree);
+    this.$el = dom.$(el);
+
+    // Put components into DOM tree and keep a reference to it in the map, for later
+    // updates
+    this.$el.find('component').each(function (index, component) {
+      dom.$(component).replaceWith(this._components.updateMap[component.id]._init().$el);
+      this._components.map[component.id] = this._components.updateMap[component.id];
+    }.bind(this));
 
     this._addBindings();
     this._addListeners();
@@ -55,7 +65,6 @@ Constructor.prototype = {
 
   // Cleans up the listeners and removes the component from the DOM
   _remove: function () {
-
     this._listeners.forEach(function (listener) {
       listener.target.removeListener(listener.type, listener.cb);
     });
@@ -93,6 +102,7 @@ Constructor.prototype = {
           var grabObject = utils.createGrabObject(component, component.bindings[binding]);
           grabObject.context[grabObject.prop] = $el.is(':checked');
           $el.trigger('$$-change');
+          component.update();
         });
 
       } else {
@@ -108,6 +118,7 @@ Constructor.prototype = {
               var grabObject = utils.createGrabObject(component, component.bindings[binding]);
               grabObject.context[grabObject.prop] = $el.val();
               $el.trigger('$$-change');
+              component.update();
             }, 0);
 
           }
@@ -155,85 +166,95 @@ Constructor.prototype = {
 
     });
   },
-
-  /*
-   * This function is passed to "render" and "map". It iterates over the arguments
-   * passed to the compiler. It jumps in and out of levels based on the
-   * domNodeRepresentation object and creates a nested array structure. It uses a
-   * traverseArray to achieve this:
-   * <div>
-   *   <div>
-   *   </div>
-   * </div>
-   *
-   * 1. "initLevel" created, set as "currentLevel" and put first in the "traverseArray"
-   * 2. <div> is found an pushed into "currentLevel"
-   * 3. Children is found and a new level is pushed to "currentLevel" and the "traverseArray"
-   * 4. Next <div> is found an pushed to currentLevel
-   * 5. No children found
-   * 6. </div> causes a pop() in "traverseArray" and we are back at our previous level
-   * 7. </div> causes a new pop() in "traverseArray" and we are done
-   * 8. [<div/>, [<div/>]] is the result
-   */
   _compiler: function () {
 
-    var compilerArgs = Array.prototype.slice.call(arguments, 0);
-    if (compilerArgs.indexOf(this.props.children) >= 0 && this._children.length) {
-      compilerArgs.splice.apply(compilerArgs, [compilerArgs.indexOf(this.props.children), 1].concat(this._children));
-    }
-    var initLevel = [];
-    var currentLevel = initLevel;
-    var traverseArray = [initLevel];
-    for (var x = 0; x < compilerArgs.length; x++) {
-
-      var compilerArg = compilerArgs[x];
-      var domNodeRepresentation = createDomNodeRepresentation(compilerArg, this);
-
-      // If it is an array, jQuery object or Component
-      if (typeof compilerArg === 'object') {
-        currentLevel.push(domNodeRepresentation);
-      } else if (domNodeRepresentation.node) {
-        currentLevel.push(domNodeRepresentation.node);
+    var html = '';
+    var context = this;
+    var args = Array.prototype.slice.call(arguments, 0);
+    args.forEach(function (arg) {
+      var id = context._components.currentId++;
+      if (arg instanceof Constructor) {
+        context._components.updateMap[id] = arg;
+        html += '<!--Component:'+ id + '-->';
+      } else if (Array.isArray(arg)) {
+        context._VTreeLists.push(arg);
+        html += '<!--VTreeNodeList-->';
       } else {
-        traverseArray.pop();
-        currentLevel = traverseArray[traverseArray.length - 1];
-        continue;
+        html += arg;
+      }
+    });
+    var traverse = function (node) {
+
+      // If top node is a component, return a component
+      if (node.nodeType === 8 && node.nodeValue.match(/Component\:.*/)) {
+        return h('component', {
+          id: node.nodeValue.match(/Component\:(.*)/)[1]
+        }, []);
       }
 
-      if (domNodeRepresentation.hasChildren) {
-        var newLevel = [];
-        newLevel.isChildArray = true;
-        currentLevel.push(newLevel);
-        currentLevel = newLevel;
-        traverseArray.push(newLevel);
+      // Props map
+      var props = {};
+
+      // Supplement with attributes on the node
+      if (node.attributes) {
+        props.attributes = {};
+        for (var x = 0; x < node.attributes.length; x++) {
+          var nodeName = node.attributes[x].nodeName;
+          var nodeValue = node.attributes[x].nodeValue;
+          props.attributes[nodeName] = nodeValue;
+        }
       }
 
-    }
+      // Convert the jFlux attributes
+      convertAttributes(props, node, context);
 
-    // If we are compiling a mapped item, take the index
-    // along in case no ID is set
-    if (typeof this.index === 'number') {
-      if (initLevel[0] instanceof dom.$ && !initLevel[0].attr('id')) {
-        initLevel[0]._jfluxIndex = this.index;
-      } else if (initLevel[0] instanceof Constructor && !initLevel[0].props.id) {
-        initLevel[0]._jfluxIndex = this.index;
-      }
-    }
+      // Create VTree node
+      return h(node.tagName, props, 
 
-    return initLevel;
+        (function () {
+
+          var children = [];
+          for (var x = 0; x < node.childNodes.length; x++) {
+            var childNode = node.childNodes[x];
+            // Use a text node with special content that refers to a prop
+            // on this component where the list is located
+            if (childNode.nodeType === 8 && childNode.nodeValue === 'VTreeNodeList') {
+              children = children.concat(context._VTreeLists.shift());
+            } else if (childNode.nodeType === 3) {
+              children.push(childNode.nodeValue);
+            } else {
+              var el = traverse(childNode);
+              children.push(el);
+            }
+          }
+          return children;
+
+        }())
+        )
+    };
+
+    // Need to use jQuery to handle any kind of top node
+    var $node = dom.$(html);
+    return traverse($node[0]);
+
   },
-  _diff: diff,
   $: function (query) {
     return this.$el.find(query);
   },
   update: function () {
-    this._render();
-    this._diff(this._renders, this._initialRenders);
+    this._components.currentId = 0;
+    this._VTreeLists = [];
+    this._components.updateMap = {};
+    var newVTree = this.render(this._compiler.bind(this));
+    var patches = diff(this._VTree, newVTree);
+    patch(this.$el[0], patches);
+    this._VTree = newVTree;
+    updateComponents(this);
   },
   render: function (compile) {
     return compile(
       '<div></div>'
-    );
+      );
   },
   listenToChange: function (target, cb) {
     this.listenTo(target, 'change', cb);
@@ -268,7 +289,9 @@ Constructor.prototype = {
       var context = {
         item: item,
         props: component.props,
-        index: index
+        index: index,
+        _VTreeLists: component._VTreeLists,
+        _components: component._components
       };
       return cb.call(context, component._compiler.bind(context));
     });
