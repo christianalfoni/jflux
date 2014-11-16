@@ -2314,7 +2314,7 @@ var converters = {
   },
   '$$-checked': function (node, value, props, context) {
     props['checked'] = utils.grabContextValue(context, value);
-    delete props.attibutes['$$-checked'];
+    delete props.attributes['$$-checked'];
   },
   '$$-disabled': function (node, value, props, context) {
     props['disabled'] = utils.grabContextValue(context, value);
