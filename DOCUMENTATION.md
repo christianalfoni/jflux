@@ -694,7 +694,7 @@ var MyComponent = $$.component({
 ```
 
 ####<a name="components-bindingtoinputs">Binding to inputs</a>
-Sometimes you want to bind to inputs. This makes it easier for you to transfer values from an element in the DOM to a state in your component. If you need to update your component as the binding listen to the special `$$-change` event.
+Sometimes you want to bind to inputs. This makes it easier for you to transfer values from an element in the DOM to a state in your component. If you need to react to binding changes, use the special `$$-change` event on the input.
 ```javascript
 var MyComponent = $$.component({
   item: {
