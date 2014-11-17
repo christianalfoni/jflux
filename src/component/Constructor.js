@@ -1,15 +1,17 @@
 var dom = require('./../dom.js');
+var dataStore = require('./../dataStore.js');
 
 function Component (props, children) {
 
+  // Used to keep track of components and data
+  this._dataStoreId = dataStore.create();
+  this._currentNodeIndex = 0;
   this.events = {};
   this.bindings = {};
-  this._isDirty = true;
   this._isInitialized = false;
   this._VTree = null;
   this._VTreeLists = [];
   this._components = {
-    currentId: 0, // It maps to argument count
     map: {}, // Where we map the components that are actually in the DOM
     updateMap: {} // Where we put our components that are rendered on update an might move to map
   };
@@ -19,9 +21,6 @@ function Component (props, children) {
   this._children = children;
   this.props = props || {};
   this.props.children = [];
-
-  // Used to keep track of updates to the components array
-  this._components._currentIndex = 0;
 
 }
 

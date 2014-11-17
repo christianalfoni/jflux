@@ -9,6 +9,7 @@ var action = require('./action.js');
 var store = require('./store.js');
 var test = require('./test.js');
 var utils = require('./utils.js');
+var dataStore = require('./dataStore.js');
 
 var exports = {
     run: run,
@@ -20,6 +21,19 @@ var exports = {
     actions: action,
     store: store,
     test: test,
+    data: function (target) {
+      
+      if (!target) {
+        return;
+      }
+
+      if (target.originalEvent) {
+        target = target.target;
+      }
+      var attribute = dom.$(target).attr('data-store');
+      return dataStore.get.apply(dataStore, attribute ? attribute.split('_') : null);
+    
+    },
     fakeStore: function (exports) {
       return this.store({
         exports: exports

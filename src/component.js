@@ -15,6 +15,7 @@
  var patch = require('virtual-dom/patch');
  var createElement = require('virtual-dom/create-element');
  var updateComponents = require('./component/updateComponents.js');
+ var dataStore = require('./dataStore.js');
  var exports = {};
 
  Constructor.prototype = {
@@ -68,7 +69,7 @@
     this._listeners.forEach(function (listener) {
       listener.target.removeListener(listener.type, listener.cb);
     });
-
+    dataStore.clear(this._dataStoreId);
     if (this.teardown) {
       this.teardown();
     }
@@ -169,15 +170,16 @@
   _compiler: function () {
 
     var html = '';
-    var context = this;
+    var component = this._component || this;
+    var context = this; // Either component or map context
     var args = Array.prototype.slice.call(arguments, 0);
     args.forEach(function (arg) {
-      var id = context._components.currentId++;
+      var id = component._currentNodeIndex++;
       if (arg instanceof Constructor) {
-        context._components.updateMap[id] = arg;
+        component._components.updateMap[id] = arg;
         html += '<!--Component:'+ id + '-->';
       } else if (Array.isArray(arg)) {
-        context._VTreeLists.push(arg);
+        component._VTreeLists.push(arg);
         html += '<!--VTreeNodeList-->';
       } else {
         html += arg;
@@ -206,7 +208,7 @@
       }
 
       // Convert the jFlux attributes
-      convertAttributes(props, node, context);
+      convertAttributes(props, node, context, component);
 
       // Create VTree node
       return h(node.tagName, props, 
@@ -219,7 +221,7 @@
             // Use a text node with special content that refers to a prop
             // on this component where the list is located
             if (childNode.nodeType === 8 && childNode.nodeValue === 'VTreeNodeList') {
-              children = children.concat(context._VTreeLists.shift());
+              children = children.concat(component._VTreeLists.shift());
             } else if (childNode.nodeType === 3) {
               children.push(childNode.nodeValue);
             } else {
@@ -242,9 +244,10 @@
     return this.$el.find(query);
   },
   update: function () {
-    this._components.currentId = 0;
+    this._currentNodeIndex = 0;
     this._VTreeLists = [];
     this._components.updateMap = {};
+    dataStore.clear(this._dataStoreId);
     var newVTree = this.render(this._compiler.bind(this));
     var patches = diff(this._VTree, newVTree);
     patch(this.$el[0], patches);
@@ -290,8 +293,7 @@
         item: item,
         props: component.props,
         index: index,
-        _VTreeLists: component._VTreeLists,
-        _components: component._components
+        _component: component
       };
       return cb.call(context, component._compiler.bind(context));
     });

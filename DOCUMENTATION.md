@@ -14,6 +14,7 @@ You can read more about **testing** here: [TESTING.md](https://github.com/christ
     - [$$.render](#jflux-render)
     - [$$.run](#jflux-run)
     - [$$.path](#jflux-path)
+    - [$$.data](#jflux-data)
   - [Actions](#actions)
     - [Create actions](#actions-createactions)
   - [Store](#store)
@@ -160,6 +161,13 @@ Returns the current route path.
 ```javascript
 $$.path() // f.ex. "/posts/1"
 ```
+
+####<a name="jflux-data">$$.data()</a>
+Grabs any data attached on the target of the event or the target node itself. Look at [$$-data](#components-attributes-data) for more information and example.
+```javascript
+$$.data(event/target)
+```
+
 ####<a name="jflux-immutable">$$.immutable()</a>
 Returns a deep cloned version of the array or object passed
 ```javascript
@@ -525,7 +533,8 @@ var MyComponent = $$.component({
     'click', 'onClick'
   },
   onClick: function (event) {
-    console.log(event.data.foo); // "bar"
+    var data = $$.data(event);
+    console.log(data.foo); // "bar"
   },
   render: function (compile) {
     return compile(

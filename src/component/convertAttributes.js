@@ -8,6 +8,7 @@
  */
 var dom = require('./../dom.js');
 var utils = require('./../utils.js');
+var dataStore = require('./../dataStore.js');
 
 var converters = {
   '$$-id': function (node, value, props, context) {
@@ -64,19 +65,20 @@ var converters = {
     props['key'] = utils.grabContextValue(context, value);
     delete props.attributes['$$-key'];
   },
-  '$$-data': function (node, value, props, context) {
-    props.attributes['data-data'] = JSON.stringify(utils.grabContextValue(context, value));
+  '$$-data': function (node, value, props, context, component) {
+    dataStore.add(component._dataStoreId, component._currentNodeIndex, utils.grabContextValue(context, value));
+    props.attributes['data-store'] = component._dataStoreId + '_' + component._currentNodeIndex;
     delete props.attributes['$$-data'];
   }
 };
 
-var convertAttributes = function (props, node, context) {
+var convertAttributes = function (props, node, context, component) {
 
   Object.keys(node.attributes).forEach(function (attr) {
     var name = node.attributes[attr].nodeName;
     if (name && converters[name]) {
       var value = node.attributes[attr].nodeValue;
-      converters[name](node, value, props, context);
+      converters[name](node, value, props, context, component);
     }
   });
 

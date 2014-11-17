@@ -92,6 +92,9 @@ Please contact me for further guidance.
 
 ### Change log
 
+**1.1.1**
+- Due to jQuery caching data attributes there has been a change to the data-API. Still use $$-data to attach data to nodes, but use $$.data(event/node) to grab that data. Good thing is that it now references the same object/array
+
 **1.1.0**
 - Implemented virtual-dom. It is not as fast as React JS (80-90% in initial testing) due to how jFlux allows for normal javascript syntax to build a DOM representation and integrates with jQuery. It will normally update faster when changing state of parent components as child components will not get affected unless properties passed has changed. To sum it up, jFlux has become crazy faster!
 
