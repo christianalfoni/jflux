@@ -21,7 +21,7 @@ module.exports = function (component) {
       // replace it
       if (!nestedComponents.map[key] || nestedComponents.updateMap[key]._description !== nestedComponents.map[key]._description) {
         nestedComponents.map[key] = nestedComponents.updateMap[key];
-        component.$el.find('#' + key).html(nestedComponents.map[key]._init().$el);
+        component.$el.find('#' + key).replaceWith(nestedComponents.map[key]._init().$el);
         return;
       }
 

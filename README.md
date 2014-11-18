@@ -92,6 +92,9 @@ Please contact me for further guidance.
 
 ### Change log
 
+**1.1.2**
+- Bug where list items are rendered as a component tag in the DOM
+
 **1.1.1**
 - Due to jQuery caching data attributes there has been a change to the data-API. Still use $$-data to attach data to nodes, but use $$.data(event/node) to grab that data. Good thing is that it now references the same object/array
 
