@@ -94,15 +94,15 @@ var myActions = $$.actions([
 ```
 
 ####<a name="jflux-state">$$.state(func)</a>
-Returns a state object, please go to [State](#state) to read more about the state API.
+Returns a store object, please go to [Store](#store) to read more about the store API.
 ```javascript
-var AppState = $$.state(function () {
+var AppStore = $$.store(function () {
 
   var list = [];
 
   return {
     getList: function () {
-      return $$.immutable(list);
+      return list;
     }
   };
 
