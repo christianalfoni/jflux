@@ -93,19 +93,18 @@ var myActions = $$.actions([
 ]);
 ```
 
-####<a name="jflux-state">$$.state(func)</a>
+####<a name="jflux-store">$$.store(obj)</a>
 Returns a store object, please go to [Store](#store) to read more about the store API.
 ```javascript
-var AppStore = $$.store(function () {
+var AppStore = $$.store({
 
-  var list = [];
-
-  return {
-    getList: function () {
-      return list;
+  list: [],
+  exports: {
+   getList: function () {
+      return this.list;
     }
-  };
-
+  }
+  
 });
 ```
 
