@@ -118,3 +118,57 @@ describe("isParam()", function () {
 });
 ```
 Please contact me for further guidance.
+<<<<<<< HEAD
+=======
+
+### Change log
+
+**1.1.2**
+- Bug where list items are rendered as a component tag in the DOM
+
+**1.1.1**
+- Due to jQuery caching data attributes there has been a change to the data-API. Still use $$-data to attach data to nodes, but use $$.data(event/node) to grab that data. Good thing is that it now references the same object/array
+
+**1.1.0**
+- Implemented virtual-dom. It is not as fast as React JS (80-90% in initial testing) due to how jFlux allows for normal javascript syntax to build a DOM representation and integrates with jQuery. It will normally update faster when changing state of parent components as child components will not get affected unless properties passed has changed. To sum it up, jFlux has become crazy faster!
+
+**1.0.1**
+- Do not deepCopy ArrayBuffers and Blobs
+
+**1.0.0**
+- Changes syntax of stores to reflect [flux-react](https://github.com/christianalfoni/flux-react) and [flux-angular](https://github.com/christianalfoni/flux-angular)
+- Changed $$.action to $$.actions, since you always want to define multiple actions
+- Removed $$.immutable, this is automatically done on all exports and action calls
+- Support circular deps when cloning
+- Binding does not update the component, listen to $$-change event to update the component on binding updates (performance)
+- Fixed back button on hash urls
+
+[Earlier changes](https://github.com/christianalfoni/jflux/blob/master/CHANGES.md)
+
+License
+-------
+
+jFlux is licensed under the [MIT license](LICENSE).
+
+> The MIT License (MIT)
+>
+> Copyright (c) 2014 Brandon Tilley
+>
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
+>
+> The above copyright notice and this permission notice shall be included in
+> all copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+> THE SOFTWARE.
+>>>>>>> 622c5eddbea6356b7a4c0fc12d4e69effe40191c
