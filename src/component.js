@@ -65,7 +65,7 @@
   },
 
   _renderByMode: function () {
-    
+
     var Handlebars = config().handlebars;
     var component = this;
 
@@ -79,13 +79,13 @@
     var args = Handlebars ? [] : [this._compiler.bind(this)];
     var render = this.render ? this.render.apply(this, args) : this.template(this);
     if (typeof render === 'string') {
-      return this._buildVTree(render);
+      return this._buildVTree(render, this, this);
     } else {
       return render;
     }
 
   },
-    
+
   _registerHandlebarsComponentHelpers: function () {
 
     var Handlebars = config().handlebars;
@@ -218,6 +218,18 @@
       // Props map
       var props = {};
 
+      // Handle properties specifically with handlebars
+      if (config().handlebars) {
+
+        if (node.value) {
+          props.value = node.value;
+        }
+        if (node.checked) {
+          props.checked = node.checked;
+        }
+
+      }
+
       // Supplement with attributes on the node
       if (node.attributes) {
         props.attributes = {};
@@ -228,8 +240,10 @@
         }
       }
 
-      // Convert the jFlux attributes
-      convertAttributes(props, node, context, component);
+      // Convert the jFlux attributes if not using handlebars
+      if (!config().handlebars) {
+        convertAttributes(props, node, context, component);
+      }
 
       // Create VTree node
       return h(node.tagName, props, 
@@ -258,6 +272,7 @@
 
     // Need to use jQuery to handle any kind of top node
     var $node = dom.$(html);
+    console.log(html);
     return traverse($node[0]);
 
   },
