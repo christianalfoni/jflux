@@ -16,6 +16,7 @@
  var createElement = require('virtual-dom/create-element');
  var updateComponents = require('./component/updateComponents.js');
  var dataStore = require('./dataStore.js');
+ var config = require('./config.js');
  var exports = {};
 
  Constructor.prototype = {
@@ -28,8 +29,7 @@
       this.init();
     }
 
-    // Render the component and set it as the current render and the initial render
-    this._VTree = this.render(this._compiler.bind(this));
+    this._VTree = this._renderByMode();
 
     if (!this._VTree) {
       error.create({
@@ -61,6 +61,42 @@
     }
 
     return this;
+
+  },
+
+  _renderByMode: function () {
+    
+    var Handlebars = config().handlebars;
+    var component = this;
+
+    // If using handlebars we have to register helpers to register component helpers
+    if (Handlebars) {
+      this._registerHandlebarsComponentHelpers();
+    }
+
+    // Render the component and based on it just being a string response pass it to the builVTree method (template)
+    // or if it is a VTree already (traditional compile)
+    var args = Handlebars ? [] : [this._compiler.bind(this)];
+    var render = this.render ? this.render.apply(this, args) : this.template(this);
+    if (typeof render === 'string') {
+      return this._buildVTree(render);
+    } else {
+      return render;
+    }
+
+  },
+    
+  _registerHandlebarsComponentHelpers: function () {
+
+    var Handlebars = config().handlebars;
+    var component = this;
+    Object.keys(this.components).forEach(function (helperName) {
+      Handlebars.registerHelper(helperName, function (options) {
+        var id = component._currentNodeIndex++;
+        component._components.updateMap[id] = component.components[helperName](options.hash, options.fn(this));
+        return '<!--Component:'+ id + '-->';
+      });
+    });
 
   },
 
@@ -167,24 +203,9 @@
 
     });
   },
-  _compiler: function () {
 
-    var html = '';
-    var component = this._component || this;
-    var context = this; // Either component or map context
-    var args = Array.prototype.slice.call(arguments, 0);
-    args.forEach(function (arg) {
-      var id = component._currentNodeIndex++;
-      if (arg instanceof Constructor) {
-        component._components.updateMap[id] = arg;
-        html += '<!--Component:'+ id + '-->';
-      } else if (Array.isArray(arg)) {
-        component._VTreeLists.push(arg);
-        html += '<!--VTreeNodeList-->';
-      } else {
-        html += arg;
-      }
-    });
+  _buildVTree: function (html, context, component) {
+
     var traverse = function (node) {
 
       // If top node is a component, return a component
@@ -240,28 +261,56 @@
     return traverse($node[0]);
 
   },
+
+  _compiler: function () {
+
+    var html = '';
+    var context = this; // Either component or map context    
+    var component = this._component || this;
+    var args = Array.prototype.slice.call(arguments, 0);
+    var traverseArgs = function (args) {
+      args.forEach(function (arg) {
+        var id = component._currentNodeIndex++;
+        if (arg instanceof Constructor) {
+          component._components.updateMap[id] = arg;
+          html += '<!--Component:'+ id + '-->';
+        } else if (arg._childrenArray) {
+          traverseArgs(arg);
+        } else if (Array.isArray(arg)) {
+          component._VTreeLists.push(arg);
+          html += '<!--VTreeNodeList-->';
+        } else {
+          html += arg;
+        }
+      });
+    };
+    traverseArgs(args);
+
+    return component._buildVTree(html, context, component);
+
+  },
   $: function (query) {
     return this.$el.find(query);
   },
+
   update: function () {
+
     this._currentNodeIndex = 0;
     this._VTreeLists = [];
     this._components.updateMap = {};
     dataStore.clear(this._dataStoreId);
-    var newVTree = this.render(this._compiler.bind(this));
+
+    var newVTree = this._renderByMode();
     var patches = diff(this._VTree, newVTree);
     patch(this.$el[0], patches);
     this._VTree = newVTree;
     updateComponents(this);
   },
-  render: function (compile) {
-    return compile(
-      '<div></div>'
-      );
-  },
+
   listenToChange: function (target, cb) {
     this.listenTo(target, 'change', cb);
   },
+
   listenTo: function (target, type, cb) {
 
     if (this._isRendering) {

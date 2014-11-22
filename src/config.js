@@ -19,7 +19,10 @@ var _options = {
 
     // Tells jFlux to run the $$.run method automatically, which routes to
     // current path
-    autoRun: true
+    autoRun: true,
+
+    // Pass instance of Handlebars to use Handlebars templates
+    handlebars: null
 
 };
 

@@ -4,30 +4,35 @@ An easy to use unidirectional component based framework.
 
 You can read more about **testing** here: [TESTING.md](https://github.com/christianalfoni/jflux/blob/master/TESTING.md)
 
-- [API](#api)
-  - [jFlux](#jflux)
-    - [$$.config](#jflux-config)
-    - [$$.component](#jflux-component)
-    - [$$.actions](#jflux-actions)
-    - [$$.store](#jflux-store)
-    - [$$.route](#jflux-route)
-    - [$$.render](#jflux-render)
-    - [$$.run](#jflux-run)
-    - [$$.path](#jflux-path)
-    - [$$.data](#jflux-data)
-  - [Actions](#actions)
-    - [Create actions](#actions-createactions)
-  - [Store](#store)
-    - [Create states](#store-createstates)
-    - [Listening to actions](#store-listeningtoactions)
-    - [State handler](#store-statehandlers)
-    - [Emit change](#store-emitchange)
-    - [Emit](#store-emit)
-    - [Exports](#store-exports)
-  - [Components](#components)
-    - [Create a component](#components-createacomponent)
+- [jFlux](#jflux)
+  - [$$.config](#jflux-config)
+  - [$$.component](#jflux-component)
+  - [$$.actions](#jflux-actions)
+  - [$$.store](#jflux-store)
+  - [$$.route](#jflux-route)
+  - [$$.render](#jflux-render)
+  - [$$.run](#jflux-run)
+  - [$$.path](#jflux-path)
+  - [$$.data](#jflux-data)
+- [Actions](#actions)
+  - [Create actions](#actions-createactions)
+- [Store](#store)
+  - [Create states](#store-createstates)
+  - [Listening to actions](#store-listeningtoactions)
+  - [State handler](#store-statehandlers)
+  - [Emit change](#store-emitchange)
+  - [Emit](#store-emit)
+  - [Exports](#store-exports)
+- [Components](#components)
+  - [Create a component](#components-createacomponent)
+  - [Properties](#components-properties)
+  - [Listening to UI events](#components-listeningtouievents)
+  - [Updates](#components-updates)
+  - [Listening to state changes](#components-listeningtostatechanges)
+  - [Binding to inputs](#components-bindingtoinputs)
+  - [After render](#components-afterrender)
+  - [Compile mode](#jflux-compilemode)
     - [Compile](#components-compile)
-    - [Properties](#components-properties)
     - [Map](#components-map)
     - [Attributes](#components-attributes)
       - [$$-id](#components-attributes-id)
@@ -41,20 +46,13 @@ You can read more about **testing** here: [TESTING.md](https://github.com/christ
       - [$$-data](#components-attributes-data)
     - [Composing](#components-composing)
     - [Transclusion](#components-transclusion)
-    - [Listening to UI events](#components-listeningtouievents)
-    - [Plugins](#components-plugins)
-    - [Updates](#components-updates)
-    - [Listening to state changes](#components-listeningtostatechanges)
-    - [Binding to inputs](#components-bindingtoinputs)
-    - [After render](#components-afterrender)
-  - [Router](#router)
-      - [Create a route](#router-createroute)
-      - [Trigger the router](#router-triggertherouter)
-      - [Dynamic routes](#router-dynamicroutes)
-      - [Nested routes](#router-createroute)
-      - [Redirecting routes](#router-redirectingroutes)
-
-##<a name="api">API</a>
+  - [Template mode](#jflux-templatemode)
+- [Router](#router)
+    - [Create a route](#router-createroute)
+    - [Trigger the router](#router-triggertherouter)
+    - [Dynamic routes](#router-dynamicroutes)
+    - [Nested routes](#router-createroute)
+    - [Redirecting routes](#router-redirectingroutes)
 
 ###<a name="jflux">jFlux ($$)</a>
 jFlux is available as `$$` on the global scope. It also supports common module loaders like [requirejs]() and [browserify]().
@@ -86,59 +84,31 @@ $$.config({
 ####<a name="jflux-actions">$$.actions([string])</a>
 Returns a map of actions. Please go to [Actions](#actions) to read more about the action API.
 ```javascript
-var myActions = $$.actions([
-  'action1',
-  'action2',
-  'action3'
-]);
+var myActions = $$.actions([]);
 ```
 
-####<a name="jflux-state">$$.state(func)</a>
-Returns a state object, please go to [State](#state) to read more about the state API.
+####<a name="jflux-store">$$.store(obj)</a>
+Returns a store object, please go to [Store](#store) to read more about the store API.
 ```javascript
-var AppState = $$.state(function () {
-
-  var list = [];
-
-  return {
-    getList: function () {
-      return $$.immutable(list);
-    }
-  };
-
-});
+var AppStore = $$.store({});
 ```
 
-####<a name="jflux-component">$$.component(func)</a>
+####<a name="jflux-component">$$.component(obj)</a>
 Returns a component. Please go to [Components](#components) to read more about the component API.
 ```javascript
-var MyComponent = $$.component({
-
-  render: function (compile) {
-    return compile(
-      '<h1>',
-        'Hello world',
-      '</h1>'
-    );
-  }
-
-});
+var MyComponent = $$.component({});
 ```
 
 ####<a name="jflux-route">$$.route(path, func)</a>
 Registers a route. Please go to [Router](#router) to read more about the route API.
 ```javascript
-$$.route('/', function () {
-  $$.render(App(), 'body');
-});
+$$.route('/', function () {});
 ```
 
 ####<a name="jflux-render">$$.render(component, target)</a>
 Renders a component to the target element. The target can be any jQuery selector.
 ```javascript
-$$.route('/', function () {
-  $$.render(App(), 'body');
-});
+$$.render(App(), 'body');
 ```
 ##### What it does
 When rendering a component to a target it will check that target for any previous renders. If it finds the same component type already rendered it will update that component if the properties passed to the component has changed. If a different component is being rendered, it will remove the previous component and add the new one. If any other components has been rendered within target, they will also be removed by jFlux. If no components registered on the target it will of course just render.
@@ -166,12 +136,6 @@ $$.path() // f.ex. "/posts/1"
 Grabs any data attached on the target of the event or the target node itself. Look at [$$-data](#components-attributes-data) for more information and example.
 ```javascript
 $$.data(event/target)
-```
-
-####<a name="jflux-immutable">$$.immutable()</a>
-Returns a deep cloned version of the array or object passed
-```javascript
-$$.immutable([{id: 1, title: 'foo'}]);
 ```
 
 ###<a name="actions">Actions</a>
