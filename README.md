@@ -20,6 +20,10 @@ application that has challenged jFlux and its capabilities.
 
 ### Change log
 
+**1.2.1**
+- Fixed template element property handling
+- Fixed array identification from iframe
+
 **1.2.0**
 - Components in templates introduced. Locked to Handlebars for templating due to more and better functionality
 - Introducing two modes. "Compile mode" and "Template mode"

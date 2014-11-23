@@ -24,29 +24,32 @@ You can read more about **testing** here: [TESTING.md](https://github.com/christ
   - [Emit](#store-emit)
   - [Exports](#store-exports)
 - [Components](#components)
-  - [Create a component](#components-createacomponent)
-  - [Properties](#components-properties)
+  - [Choosing a mode](#components-choosingamode)
+    - [Compile mode](#components-compilemode)
+      - [Compile](#components-compile)
+      - [Properties](#components-properties)
+      - [Map](#components-map)
+      - [Attributes](#components-attributes)
+        - [$$-id](#components-attributes-id)
+        - [$$-class](#components-attributes-class)
+        - [$$-checked](#components-attributes-checked)
+        - [$$-disabled](#components-attributes-disabled)
+        - [$$-value](#components-attributes-value)
+        - [$$-style](#components-attributes-style)
+        - [$$-href](#components-attributes-href)
+        - [$$-show](#components-attributes-show)
+        - [$$-data](#components-attributes-data)
+      - [Composing](#components-composing)
+      - [Transclusion](#components-transclusion)
+    - [Template mode](#components-templatemode)
+        - [Composing](#components-composingtemplates)
+        - [Transclusion](#components-transclusiontemplates)
+        - [Properties](#components-propertiestemplates)
   - [Listening to UI events](#components-listeningtouievents)
   - [Updates](#components-updates)
   - [Listening to state changes](#components-listeningtostatechanges)
   - [Binding to inputs](#components-bindingtoinputs)
   - [After render](#components-afterrender)
-  - [Compile mode](#jflux-compilemode)
-    - [Compile](#components-compile)
-    - [Map](#components-map)
-    - [Attributes](#components-attributes)
-      - [$$-id](#components-attributes-id)
-      - [$$-class](#components-attributes-class)
-      - [$$-checked](#components-attributes-checked)
-      - [$$-disabled](#components-attributes-disabled)
-      - [$$-value](#components-attributes-value)
-      - [$$-style](#components-attributes-style)
-      - [$$-href](#components-attributes-href)
-      - [$$-show](#components-attributes-show)
-      - [$$-data](#components-attributes-data)
-    - [Composing](#components-composing)
-    - [Transclusion](#components-transclusion)
-  - [Template mode](#jflux-templatemode)
 - [Router](#router)
     - [Create a route](#router-createroute)
     - [Trigger the router](#router-triggertherouter)
@@ -77,7 +80,11 @@ $$.config({
     // The router will trigger on page load. If set to autoRoute: false, you
     // will have to use the $$.run() method to start the router.
     // If requirejs is detected, autoRoute defaults to false
-    autoRoute: true
+    autoRoute: true,
+    
+    // To get into template mode, attach an instance of Handlebars on the
+    // handlebars property. Now you are in "Template mode"
+    handlebars: Handlebars
 
 });
 ```
@@ -279,24 +286,23 @@ var AppStore = $$.store(  todos: [],
 All your UI is constructed with components. They are composable, meaning that components
 can live inside other components.
 
-####<a name="components-createacomponent">Create a component</a>
-The minimum boilerplate for a component is to define a render callback that
-returns a DOM representation with a top node. The default render method compiles a single `div`.
-```javascript
-var MyComponent = $$.component({
+####<a name="components-choosingamode">Choosing a mode</a>
+There are two strategies you can take creating components for your application. In **Compile mode** you define your HTML in JavaScript. In **Template mode** you use Handlebars templates. There is not much difference in regards of performance, so what you decide should be based on what you are most comfortable with.
 
+#####<a name="components-compilemode">Compile mode</a>
+```javascript
+var myComponent = $$.component({
   render: function (compile) {
     return compile(
       '<h1>',
-        'Hello world',
+        'Hello world!',
       '</h1>'
     );
   }
-
 });
 ```
 
-####<a name="components-compile">Compile</a>
+######<a name="components-compile">Compile</a>
 The first and only argument passed to a components render method is the `compile` function. The compile function
 returns a UI data structure that jFlux understands. Compile can take the following arguments:
 
@@ -308,26 +314,7 @@ returns a UI data structure that jFlux understands. Compile can take the followi
 The arguments builds a DOM structure that will be appended to wherever the component
 is appended or diffed with existing render of the component.
 
-####<a name="components-properties">Properties</a>
-Components can receive properties. These properties are passed when a component is rendered to an existing DOM node, or when composed into an other component. The properties are an object that can take any values. You point to the passed properties with: `this.props`.
-
-```javascript
-var MyComponent = $$.component({
-
-  render: function (compile) {
-    return compile(
-      '<h1>',
-        this.props.title,
-      '</h1>'
-    );
-  }
-
-});
-
-$$.render(MyComponent({title: 'Hello world!'}), 'body');
-```
-
-####<a name="components-map">Map</a>
+######<a name="components-map">Map</a>
 If you need to compile a list of elements you can use the `map` method provided. It takes its own compile function.
 The context of the map callback will be unique. You can use that context to add "render-props", point to the item
 in the current iteration and the "props" passed to the component itself.
@@ -353,7 +340,26 @@ var MyComponent = $$.component({
 });
 ```
 
-####<a name="components-attributes">Attributes</a>
+#####<a name="components-properties">Properties</a>
+Components can receive properties. These properties are passed when a component is rendered to an existing DOM node, or when composed into an other component. The properties are an object that can take any values. You point to the passed properties with: `this.props`.
+
+```javascript
+var MyComponent = $$.component({
+
+  render: function (compile) {
+    return compile(
+      '<h1>',
+        this.props.title,
+      '</h1>'
+    );
+  }
+
+});
+
+$$.render(MyComponent({title: 'Hello world!'}), 'body');
+```
+
+#####<a name="components-attributes">Attributes</a>
 You can add attributes as you normally would, but jFlux is aware of the context you are in an can get values from that context.
 You have your main component context, where you define render etc., but you also have a context when iterating lists which you
 can grab values from. In a list the item iterated over is the property "item". You also have access to "props". The
@@ -383,7 +389,7 @@ var MyComponent = $$.component({
 });
 ``
 
-#####<a name="components-attributes-id">$$-id</a>
+######<a name="components-attributes-id">$$-id</a>
 ```javascript
 var MyComponent = $$.component({
   myId: 'foo',
@@ -396,7 +402,7 @@ var MyComponent = $$.component({
   }
 });
 ```
-#####<a name="components-attributes-class">$$-class</a>
+######<a name="components-attributes-class">$$-class</a>
 The class attribute needs to point to an object where the keys are the class names and the value is either true or false. True values will add the class name, false will not.
 ```javascript
 var MyComponent = $$.component({
@@ -415,7 +421,7 @@ var MyComponent = $$.component({
 
 });
 ```
-#####<a name="components-attributes-checked">$$-checked</a>
+######<a name="components-attributes-checked">$$-checked</a>
 ```javascript
 var MyComponent = $$.component({
   isActive: true,
@@ -426,7 +432,7 @@ var MyComponent = $$.component({
   }
 });
 ```
-#####<a name="components-attributes-disabled">$$-disabled</a>
+######<a name="components-attributes-disabled">$$-disabled</a>
 ```javascript
 var MyComponent = $$.component({
   isDisabled: false,
@@ -437,7 +443,7 @@ var MyComponent = $$.component({
   }
 });
 ```
-#####<a name="components-attributes-value">$$-value</a>
+######<a name="components-attributes-value">$$-value</a>
 ```javascript
 var MyComponent = $$.component({
   this.render = function (compile) {
@@ -449,7 +455,7 @@ var MyComponent = $$.component({
 });
 ```
 
-#####<a name="components-attributes-style">$$-style</a>
+######<a name="components-attributes-style">$$-style</a>
 ```javascript
 var MyComponent = $$.component({
   style: {
@@ -463,7 +469,7 @@ var MyComponent = $$.component({
 });
 ```
 
-#####<a name="components-attributes-href">$$-href</a>
+######<a name="components-attributes-href">$$-href</a>
 ```javascript
 var MyComponent = $$.component({
   url: 'http://www.jflux.io',
@@ -475,7 +481,7 @@ var MyComponent = $$.component({
 });
 ```
 
-#####<a name="components-attributes-show">$$-show</a>
+######<a name="components-attributes-show">$$-show</a>
 ```javascript
 var MyComponent = $$.component({
   isReady: true,
@@ -487,7 +493,7 @@ var MyComponent = $$.component({
 });
 ```
 
-#####<a name="components-attributes-data">$$-data</a>
+######<a name="components-attributes-data">$$-data</a>
 ```javascript
 var MyComponent = $$.component({
   someData: {
@@ -508,7 +514,7 @@ var MyComponent = $$.component({
 });
 ```
 
-####<a name="components-composing">Composing</a>
+#####<a name="components-composing">Composing</a>
 A component DOM representation can take other components as arguments.
 
 ```javascript
@@ -538,7 +544,7 @@ var List = $$.component({
   }
 });
 ```
-####<a name="components-transclusion">Transclusion</a>
+#####<a name="components-transclusion">Transclusion</a>
 You can include dynamic HTML inside components. The HTML defined will run in the context of the component it is included in, not the context from where it is defined. Use the special property `this.props.children` to define where the children should be put.
 
 ```javascript
@@ -574,6 +580,104 @@ var MyForm = $$.component({
     );
   }
 });
+```
+
+####<a name="components-templatemode">Template mode</a>
+When jFlux is configured with an instance of Handlebars you can assign a template property that will be used to render the component. The component itself will be passed as the context to the template, so any properties available in the component, is available in the template. Read more on [http://handlebarsjs.com/](http://handlebarsjs.com/) on how to use Handlebars.
+
+```javascript
+var myComponent = $$.component({
+  template: Handlebars.templates.myTemplate
+});
+```
+
+```html
+<h1>Hello world!</h1>
+```
+
+You can still use a render method though, if you need to change the properties of the component when rendering.
+
+```javascript
+var myComponent = $$.component({
+  template: Handlebars.templates.myTemplate,
+  render: function () {
+    this.foo = 'bar';
+    return this.template(this);
+  }
+});
+```
+
+#####<a name="components-composingtemplates">Composing</a>
+To use components inside a template you have to expose them from your parent component with a `components` property.
+```javascript
+var myChildComponent = $$.component({
+  template: Handlebars.templates.myChildTemplate
+});
+
+var myComponent = $$.component({
+  components: {
+    myChildComponent: myChildComponent
+  },
+  template: Handlebars.templates.myTemplate
+});
+```
+```html
+<div>
+  {{#myChildComponent}}{{/myChildComponent}}
+</div>
+```
+
+#####<a name="components-transclusiontemplates">Transclusion</a>
+You can add content to your child components directly in the template. By pointing to `props.children` you choose where transcluded children will be added.
+```javascript
+var myChildComponent = $$.component({
+  template: Handlebars.templates.myChildTemplate
+});
+
+var myComponent = $$.component({
+  components: {
+    myChildComponent: myChildComponent
+  },
+  template: Handlebars.templates.myTemplate
+});
+```
+```html
+<div>
+  {{#myChildComponent}}
+    This is content inside the child component
+  {{/myChildComponent}}
+</div>
+```
+```html
+<div>
+  {{props.children}}
+</div>
+```
+
+#####<a name="components-propertiestemplates">Properties</a>
+You can pass properties to components in templates.
+```javascript
+var myChildComponent = $$.component({
+  template: Handlebars.templates.myChildTemplate
+});
+
+var myComponent = $$.component({
+  components: {
+    myChildComponent: myChildComponent
+  },
+  title: 'This is my title',
+  template: Handlebars.templates.myTemplate
+});
+```
+```html
+<div>
+  {{#myChildComponent title=title}}{{/myChildComponent}}
+</div>
+```
+```html
+<div>
+  {{props.title}}
+</div>
 ```
 
 ####<a name="components-listeningtouievents">Listening to UI events</a>

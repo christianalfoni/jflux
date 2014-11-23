@@ -34,7 +34,7 @@ exports.deepClone = function (obj) {
   }
 
   // Handle Array - or array-like items (Buffers)
-  if (obj instanceof Array || obj.length) {
+  if (obj instanceof Array || typeof obj.length !== 'undefined') {
     
     refs.push(obj);
     copy = [];
