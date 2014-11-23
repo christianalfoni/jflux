@@ -272,7 +272,6 @@
 
     // Need to use jQuery to handle any kind of top node
     var $node = dom.$(html);
-    console.log(html);
     return traverse($node[0]);
 
   },
