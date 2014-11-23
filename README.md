@@ -20,6 +20,9 @@ application that has challenged jFlux and its capabilities.
 
 ### Change log
 
+**1.2.2**
+- Removed debug messages (DOH!)
+
 **1.2.1**
 - Fixed template element property handling
 - Fixed array identification from iframe
