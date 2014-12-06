@@ -125,8 +125,6 @@ describe("isParam()", function () {
 });
 ```
 Please contact me for further guidance.
-<<<<<<< HEAD
-=======
 
 ### Change log
 
