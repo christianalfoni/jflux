@@ -780,7 +780,7 @@ var MyComponent = $$.component({
   },
   bindings: {
     'input[name="title"]': 'item.title',
-    'input[name="description"]': 'item.description
+    'input[name="description"]': 'item.description'
   },
   render: function (compile) {
     this.invalidTodo = !(this.item.title && this.item.description);
