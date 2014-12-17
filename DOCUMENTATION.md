@@ -387,7 +387,7 @@ var MyComponent = $$.component({
   }
 
 });
-``
+```
 
 ######<a name="components-attributes-id">$$-id</a>
 ```javascript
